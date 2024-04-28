@@ -75,7 +75,7 @@ app = Flask(__name__)
 
 
 @app.route("/index")
-def index():
+def index() -> str:
     return "Hello, World!"
 
 
@@ -97,7 +97,7 @@ listener = Listener(app, True, False, ["127.0.0.1"], 80)
 
 
 @app.route("/index")
-def index():
+def index() -> str:
     return "Hello, World!"
 
 
