@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 {% include 'navbar.html' %}
 
 <div class="container d-flex justify-content-center mt-5">
-    <!-- Add authorized user form -->
     <form action="/add_authorized_host" method="get">
         <div class="form-group">
             <label for="host">Host</label>
@@ -21,7 +19,6 @@
     </form>
 </div>
 
-<!-- Bootstrap JS and jQuery -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </body>
