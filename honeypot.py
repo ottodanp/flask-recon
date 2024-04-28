@@ -15,8 +15,8 @@ class Listener:
     _run_with_ssl: bool
     _port: int
 
-    def __init__(self, yield_forever: bool, run_with_ssl: bool, authorized_hosts: List[str], port: int) -> None:
-        self._flask_app = Flask(__name__)
+    def __init__(self, flask_app: Flask, yield_forever: bool, run_with_ssl: bool, authorized_hosts: List[str], port: int) -> None:
+        self._flask_app = flask_app
         self._authorized_addresses = authorized_hosts
         self._yield_forever = yield_forever
         self._run_with_ssl = run_with_ssl
@@ -111,8 +111,15 @@ class Listener:
 
 if __name__ == "__main__":
     try:
+        flask_app = Flask(__name__)
         listen_port = int(argv[3])
-        Listener(argv[1] == "yield", argv[2] == "ssl", ["127.0.0.1"], listen_port).run()
+        Listener(
+            flask_app=flask_app,
+            yield_forever=argv[1] == "yield",
+            run_with_ssl=argv[2] == "ssl",
+            authorized_hosts=["127.0.0.1"],
+            port=listen_port,
+        ).run()
     except IndexError:
-        print("Usage: python3 webapp.py [yield|noyield] [ssl|nossl] <port>")
+        print("Usage: python3 honeypot.py [yield|noyield] [ssl|nossl] <port>")
         exit(1)
