@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request History for {{ host }}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .requests_table {
+            padding-left: 0;
+            justify-content: left;
+            align-items: flex-start;
+            align-content: flex-start;
+            align-self: flex-start;
+        }
+    </style>
 </head>
 <body>
 {% include 'navbar.html' %}
-<div class="container mt-5">
+<div class="container requests_table">
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md">
             <table class="table table-striped">
                 <thead>
                 <tr>
