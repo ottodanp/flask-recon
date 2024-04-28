@@ -2,7 +2,7 @@
 
 ### A simple passive honeypot written in Python with Flask and psycopg2.
 
-## Aims:
+### Aims:
 
 - Provide a simple passive honeypot that can be used to detect and log malicious activity on a network.
 - Gather information about the attacker and the attack.
@@ -65,6 +65,27 @@ if __name__ == '__main__':
 ```
 
 #### Easily adding the honeypot to an existing Flask application:
+
+###### Before:
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route("/index")
+def index():
+    return "Hello, World!"
+
+
+# Any other existing routes
+
+if __name__ == '__main__':
+    app.run()
+```
+
+###### After:
 
 ```python
 from flask import Flask
