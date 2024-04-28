@@ -93,7 +93,13 @@ from flask import Flask
 from honeypot import Listener
 
 app = Flask(__name__)
-listener = Listener(flask_app=app, yield_forever=True, run_with_ssl=False, authorized_hosts=["127.0.0.1"], port=80)
+listener = Listener(
+    flask_app=app,
+    yield_forever=True,
+    run_with_ssl=False,
+    authorized_hosts=["127.0.0.1"],
+    port=80
+)
 
 
 @app.route("/index")
