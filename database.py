@@ -1,3 +1,5 @@
+from typing import List, Tuple, Any, Dict
+
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
 
@@ -38,3 +40,47 @@ class DbHandler(cursor):
     def get_remote_address_id(self, remote_address: str) -> int:
         self.execute("SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s", (remote_address,))
         return self.fetchone()[0]
+
+    def count_requests(self, host: str) -> Tuple[int, int]:
+        self.execute(
+            "SELECT COUNT(*) FROM requests WHERE remote_address_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s AND acceptable = TRUE)",
+            (host,))
+        valid = self.fetchone()[0]
+        self.execute(
+            "SELECT COUNT(*) FROM requests WHERE remote_address_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s AND acceptable = FALSE)",
+            (host,))
+        invalid = self.fetchone()[0]
+        return valid, invalid
+
+    def get_remote_hosts(self) -> List[Dict[str, Any]]:
+        self.execute("SELECT remote_address FROM remote_hosts")
+        hosts = self.fetchall()
+        r = []
+        for row in hosts:
+            host = row[0]
+            valid, invalid = self.count_requests(host)
+            r.append({"host": host, "valid_requests": valid, "invalid_requests": invalid})
+
+        return r
+
+    def get_requests(self, host: str):
+        self.execute(
+            "SELECT request_method, request_headers, request_uri, query_string, request_body, acceptable FROM requests WHERE remote_address_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s)",
+            (host,))
+        rows = self.fetchall()
+        r = []
+        for row in rows:
+            try:
+                method, headers, uri, query_string, body, acceptable = row
+            except ValueError:
+                continue
+            r.append({
+                "method": method,
+                "headers": headers,
+                "uri": uri,
+                "query_string": query_string,
+                "body": body,
+                "acceptable": acceptable
+            })
+
+        return r
