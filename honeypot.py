@@ -4,10 +4,12 @@ from typing import Tuple, Dict, List, Generator, Any
 
 from flask import Flask, request, render_template, redirect
 
+from config import Config
 from database import DbHandler
 
 
 class Listener:
+    _config: Config
     _flask_app: Flask
     _authorized_addresses: List[str]
     _yield_forever: bool
@@ -15,12 +17,20 @@ class Listener:
     _run_with_ssl: bool
     _port: int
 
-    def __init__(self, flask_app: Flask, yield_forever: bool, run_with_ssl: bool, authorized_hosts: List[str], port: int) -> None:
+    def __init__(self, flask_app: Flask, yield_forever: bool, run_with_ssl: bool, authorized_hosts: List[str],
+                 port: int) -> None:
+        self._config = Config()
         self._flask_app = flask_app
         self._authorized_addresses = authorized_hosts
         self._yield_forever = yield_forever
         self._run_with_ssl = run_with_ssl
-        self._database_handler = DbHandler("requests", "postgres", "postgres", "localhost", "5432")
+        self._database_handler = DbHandler(
+            self._config.database_name,
+            self._config.database_username,
+            self._config.database_password,
+            self._config.database_host,
+            self._config.database_port
+        )
         self._port = port
         for host in authorized_hosts:
             self._database_handler.add_authorized_host(host)
@@ -94,6 +104,10 @@ class Listener:
         query_string = "&".join([f"{k}={v}" for k, v in args.items()])
         return dict(req.headers), req.method, req.remote_addr, req.path, query_string, dict(req.data)
 
+    @property
+    def database_handler(self) -> DbHandler:
+        return self._database_handler
+
     def run(self) -> None:
         self._flask_app.route("/robots.txt", methods=["GET"])(self.robots)
         self._flask_app.route("/view_hosts", methods=["GET"])(self.view_hosts)
@@ -111,10 +125,10 @@ class Listener:
 
 if __name__ == "__main__":
     try:
-        flask_app = Flask(__name__)
+        app = Flask(__name__)
         listen_port = int(argv[3])
         Listener(
-            flask_app=flask_app,
+            flask_app=app,
             yield_forever=argv[1] == "yield",
             run_with_ssl=argv[2] == "ssl",
             authorized_hosts=["127.0.0.1"],
