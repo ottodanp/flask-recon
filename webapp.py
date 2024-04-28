@@ -2,7 +2,7 @@ from json import dumps
 from sys import argv
 from typing import Tuple, Dict, List, Generator, Any
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 
 from database import DbHandler
 
@@ -28,6 +28,12 @@ class Listener:
         self.handle_request(*self.unpack_request_values(request))
         return "User-agent: *\nDisallow: /", 200
 
+    def admin_index(self) -> Tuple[str, int]:
+        if request.remote_addr not in self._authorized_addresses:
+            return "Unauthorized", 403
+
+        return render_template("home.html"), 200
+
     def view_hosts(self) -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
         if request.remote_addr not in self._authorized_addresses:
             return "Unauthorized", 403
@@ -48,7 +54,7 @@ class Listener:
         if request.remote_addr not in self._authorized_addresses:
             return "Unauthorized", 403
 
-        host = request.args.get("host")
+        host = request.args.get("host") or request.form.get("host")
         if host is None:
             return "Missing host parameter", 400
         self._authorized_addresses.append(host)
@@ -57,6 +63,9 @@ class Listener:
     def handle_request(self, headers: Dict[str, str], method: str, remote_address: str, uri: str, query_string: str,
                        body: Dict[str, str]) -> Tuple[str, int] | Generator[str, Any, Tuple[str, int]]:
         acceptable = True if uri in ["/", "/favicon.ico", "/robots.txt"] else False
+        if uri == "/" and remote_address in self._authorized_addresses:
+            return redirect("/home"), 302
+
         self._database_handler.insert_request(
             acceptable,
             remote_address,
@@ -85,6 +94,7 @@ class Listener:
         self._flask_app.route("/view_hosts", methods=["GET"])(self.view_hosts)
         self._flask_app.route("/view_requests", methods=["GET"])(self.view_requests)
         self._flask_app.route("/add_authorized_host", methods=["GET"])(self.add_authorized_host)
+        self._flask_app.route("/home", methods=["GET"])(self.admin_index)
         self._flask_app.errorhandler(404)(self.error_handler)
         self._flask_app.run(host="0.0.0.0", port=self._port)
 
@@ -92,7 +102,7 @@ class Listener:
 if __name__ == "__main__":
     try:
         port = int(argv[2])
-        Listener(argv[1] == "yield", ["127.0.0.1", "82.4.45.86"], port).run()
+        Listener(argv[1] == "yield", ["127.0.0.1"], port).run()
     except IndexError:
         print("Usage: python3 webapp.py [yield|noyield] <port>")
         exit(1)
