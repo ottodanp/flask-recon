@@ -138,5 +138,5 @@ if __name__ == "__main__":
             port=listen_port,
         ).run()
     except IndexError:
-        print("Usage: python3 honeypot.py [yield|noyield] [ssl|nossl] <port>")
+        print("Usage: python3 __init__.py [yield|noyield] [ssl|nossl] <port>")
         exit(1)

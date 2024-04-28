@@ -27,12 +27,12 @@ Windows:
 pip install psycopg2 flask
 ```
 
-## Run:
+## Deploy:
 
 ### Standalone:
 
 ```bash
-sudo python3 honeypot.py [yield|noyield] [ssl|nossl] <port>
+sudo python3 -m passive_honeypot [yield|noyield] [ssl|nossl] <port>
 ```
 
 ### As part of another Flask application:
@@ -43,44 +43,43 @@ sudo python3 honeypot.py [yield|noyield] [ssl|nossl] <port>
 from typing import Tuple, List, Dict, Any
 
 from flask import Flask, request
-
-from honeypot import Listener
+from passive_honeypot import Listener
 
 listener = Listener(
-    flask_app=Flask(__name__),
-    yield_forever=True,
-    run_with_ssl=False,
-    authorized_hosts=["127.0.0.1"],
-    port=80
+  flask_app=Flask(__name__),
+  yield_forever=True,
+  run_with_ssl=False,
+  authorized_hosts=["127.0.0.1"],
+  port=80
 )
 
 
 @listener.route("/api/search_requests")
 def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
-    host = request.args.get("host")
-    if not host:
-        return "Invalid host", 400
+  host = request.args.get("host")
+  if not host:
+    return "Invalid host", 400
 
-    if not listener.database_handler.host_is_authorized(host):
-        return "Unauthorized", 403
+  if not listener.database_handler.host_is_authorized(host):
+    return "Unauthorized", 403
 
-    return listener.database_handler.get_requests(host), 200
+  return listener.database_handler.get_requests(host), 200
 
 
 @listener.route("/api/search_hosts")
 def search_hosts() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
-    if not listener.database_handler.host_is_authorized(request.remote_addr):
-        return "Unauthorized", 403
+  if not listener.database_handler.host_is_authorized(request.remote_addr):
+    return "Unauthorized", 403
 
-    return listener.database_handler.get_remote_hosts(), 200
+  return listener.database_handler.get_remote_hosts(), 200
 
 
 if __name__ == '__main__':
-    listener.run()
+  listener.run()
 
 ```
 
-#### Easily adding the honeypot to an existing Flask application:
+#### Seamlessly integrating the honeypot into an existing Flask application:
 
 ###### Before:
 
@@ -106,26 +105,26 @@ if __name__ == '__main__':
 ```python
 from flask import Flask
 
-from honeypot import Listener
+from passive_honeypot import Listener
 
 app = Flask(__name__)
 listener = Listener(
-    flask_app=app,
-    yield_forever=True,
-    run_with_ssl=False,
-    authorized_hosts=["127.0.0.1"],
-    port=80
+  flask_app=app,
+  yield_forever=True,
+  run_with_ssl=False,
+  authorized_hosts=["127.0.0.1"],
+  port=80
 )
 
 
 @app.route("/index")
 def index() -> str:
-    return "Hello, World!"
+  return "Hello, World!"
 
 
 # Any other existing routes
 
 if __name__ == '__main__':
-    # app.run()
-    listener.run()
+  # app.run()
+  listener.run()
 ```

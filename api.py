@@ -2,7 +2,7 @@ from typing import Tuple, List, Dict, Any, Union
 
 from flask import Flask, request
 
-from honeypot import Listener
+from passive_honeypot_OTTODANP.src.honeypot import Listener
 
 listener = Listener(
     flask_app=Flask(__name__),

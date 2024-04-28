@@ -1,0 +1,17 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "passive_honeypot"
+version = "0.1.1"
+description = "A simple passive honeypot written in Python with Flask and psycopg2."
+authors = ["ottodanp <ottodanp@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+flask = "^2.0.2"
+psycopg2 = "^2.9.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
