@@ -18,9 +18,9 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Host</th>
+            <th scope="col">Total Requests</th>
             <th scope="col">Acceptable Requests</th>
             <th scope="col">Unacceptable Requests</th>
-            <th scope="col">Total Requests</th>
             <th scope="col">View Requests</th>
             <th scope="col">View IP Details</th>
         </tr>
@@ -30,9 +30,9 @@
         <tr>
             <th scope="row">{{ loop.index }}</th>
             <td>{{ host.host }}</td>
+            <td>{{ host.total_requests }}</td>
             <td>{{ host.valid_requests }}</td>
             <td>{{ host.invalid_requests }}</td>
-            <td>{{ host.total_requests }}</td>
             <td>
                 <a href="/view_requests?host={{ host.host }}">
                     <button type="button" class="btn btn-primary" data-toggle="modal"
