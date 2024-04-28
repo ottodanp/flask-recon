@@ -73,13 +73,13 @@ class DbHandler(cursor):
 
     def get_requests(self, host: str):
         self.execute(
-            "SELECT request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at FROM requests WHERE remote_host_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_host = %s)",
+            "SELECT request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at, port FROM requests WHERE remote_host_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_host = %s)",
             (host,))
         rows = self.fetchall()
         r = []
         for row in rows:
             try:
-                method, headers, uri, query_string, body, acceptable, timestamp = row
+                method, headers, uri, query_string, body, acceptable, timestamp, port = row
             except ValueError:
                 continue
             r.append({
@@ -89,7 +89,8 @@ class DbHandler(cursor):
                 "query_string": query_string,
                 "body": loads(body) if body else {},
                 "acceptable": acceptable,
-                "timestamp": timestamp
+                "timestamp": timestamp,
+                "port": port
             })
 
         return r
