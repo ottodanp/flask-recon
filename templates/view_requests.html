@@ -21,6 +21,7 @@
             <th scope="col">Body</th>
             <th scope="col">Acceptable</th>
             <th scope="col">Timestamp</th>
+            <th scope="col">Port</th>
         </tr>
         </thead>
         <tbody>
@@ -77,6 +78,7 @@
             </td>
             <td>{{ request.acceptable }}</td>
             <td>{{ request.timestamp }}</td>
+            <td> {{ port }}</td>
         </tr>
         {% endfor %}
         </tbody>
