@@ -101,7 +101,8 @@ class Listener:
         self._flask_app.route("/add_authorized_host", methods=["GET"])(self.add_authorized_host)
         self._flask_app.route("/home", methods=["GET"])(self.admin_index)
         self._flask_app.route("/favicon.ico", methods=["GET"])(self.favicon)
-        self._flask_app.errorhandler(404)(self.error_handler)
+        for i in [404, 403, 500]:
+            self._flask_app.errorhandler(i)(self.error_handler)
         if self._run_with_ssl:
             self._flask_app.run(host="0.0.0.0", port=self._port, ssl_context=("cert.pem", "key.pem"))
         else:
