@@ -18,7 +18,7 @@ class DbHandler(cursor):
         super().close()
 
     def insert_request(self, acceptable: bool, remote_host: str, method: str, headers: str, uri: str,
-                       query_string: str, body: str):
+                       query_string: str, body: str, port: int):
         if not self.remote_host_exists(remote_host):
             self.insert_remote_host(remote_host)
 
@@ -27,8 +27,8 @@ class DbHandler(cursor):
         timestamp = self.fetchone()[0]
         # using a parameterized query automatically escapes the input and prevents SQL injection
         self.execute(
-            "INSERT INTO requests (remote_host_id, request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO requests (remote_host_id, request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at, port) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (remote_host_id, method, headers, uri, query_string, body, acceptable, timestamp))
         self._conn.commit()
 

@@ -74,7 +74,7 @@ class Listener:
             return redirect("/home"), 302
 
         self._database_handler.insert_request(acceptable, remote_address, method, dumps(headers), uri, query_string,
-                                              dumps(body))
+                                              dumps(body), self._port)
         if not acceptable and self._yield_forever:
             # yield forever to keep the connection open and hang a thread on the malicious bot
             while True:
