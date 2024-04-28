@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Union
 
 from flask import Flask, request
 
@@ -14,7 +14,7 @@ listener = Listener(
 
 
 @listener.route("/api/search_requests")
-def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
+def search_requests() -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
     host = request.args.get("host")
     if not host:
         return "Invalid host", 400
@@ -26,7 +26,7 @@ def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
 
 
 @listener.route("/api/search_hosts")
-def search_hosts() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
+def search_hosts() -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
     if not listener.database_handler.host_is_authorized(request.remote_addr):
         return "Unauthorized", 403
 

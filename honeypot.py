@@ -1,6 +1,6 @@
 from json import dumps
 from sys import argv
-from typing import Tuple, Dict, List, Generator, Any
+from typing import Tuple, Dict, List, Generator, Any, Union
 
 from flask import Flask, request, render_template, redirect
 
@@ -35,7 +35,7 @@ class Listener:
         for host in authorized_hosts:
             self._database_handler.add_authorized_host(host)
 
-    def error_handler(self, _) -> Tuple[str, int] | Generator[str, Any, Tuple[str, int]]:
+    def error_handler(self, _) -> Union[Tuple[str, int], Generator[str, Any, Tuple[str, int]]]:
         return self.handle_request(*self.unpack_request_values(request))
 
     def robots(self) -> Tuple[str, int]:
@@ -48,14 +48,14 @@ class Listener:
 
         return render_template("home.html"), 200
 
-    def view_hosts(self) -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
+    def view_hosts(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
         hosts = self._database_handler.get_remote_hosts()
         return render_template("view_hosts.html", hosts=hosts), 200
 
-    def view_requests(self) -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
+    def view_requests(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
@@ -78,7 +78,7 @@ class Listener:
         return "Host added", 200
 
     def handle_request(self, headers: Dict[str, str], method: str, remote_address: str, uri: str, query_string: str,
-                       body: Dict[str, str]) -> Tuple[str, int] | Generator[str, Any, Tuple[str, int]]:
+                       body: Dict[str, str]) -> Union[Tuple[str, int], Generator[str, Any, Tuple[str, int]]]:
         acceptable = True if uri in ["/", "/favicon.ico", "/robots.txt"] else False
         if uri == "/" and remote_address in self._authorized_addresses:
             return redirect("/home"), 302
