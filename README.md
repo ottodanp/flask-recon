@@ -11,6 +11,22 @@
   using any kind of concurrency, their whole scan will be halted.)
 - Provide a simple way to view the logs and analyse the data.
 
+## Setup:
+
+### Install the required packages:
+
+Linux:
+
+```bash
+sudo apt-get install python3 python3-psycopg2 python3-flask postgresql
+```
+
+Windows:
+
+```bash
+pip install psycopg2 flask
+```
+
 ## Run:
 
 ### Standalone:
