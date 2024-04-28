@@ -4,11 +4,16 @@ from flask import Flask, request
 
 from honeypot import Listener
 
-app = Flask(__name__)
-listener = Listener(app, True, False, ["127.0.0.1"], 80)
+listener = Listener(
+    flask_app=Flask(__name__),
+    yield_forever=True,
+    run_with_ssl=False,
+    authorized_hosts=["127.0.0.1"],
+    port=80
+)
 
 
-@app.route("/api/search_requests")
+@listener.route("/api/search_requests")
 def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
     host = request.args.get("host")
     if not host:
@@ -20,7 +25,7 @@ def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
     return listener.database_handler.get_requests(host), 200
 
 
-@app.route("/api/search_hosts")
+@listener.route("/api/search_hosts")
 def search_hosts() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
     if not listener.database_handler.host_is_authorized(request.remote_addr):
         return "Unauthorized", 403

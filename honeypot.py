@@ -93,6 +93,9 @@ class Listener:
         # we do not want to yield forever for an acceptable request so simply return 403
         return "", 403
 
+    def route(self, args, **kwargs):
+        return self._flask_app.route(args, **kwargs)
+
     @staticmethod
     def favicon() -> Tuple[bytes, int]:
         with open("favicon.ico", "rb") as icon:
