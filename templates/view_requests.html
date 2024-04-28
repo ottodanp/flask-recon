@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request History for {{ host }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Host Viewer</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <!-- Add more navigation items here -->
+        </ul>
+    </div>
+</nav>
+
+<!-- Hosts Table -->
+<div class="container mt-5">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Remote Address</th>
+            <th scope="col">Method</th>
+            <th scope="col">Path</th>
+            <th scope="col">Query String</th>
+            <th scope="col">Headers</th>
+            <th scope="col">Body</th>
+            <th scope="col">Acceptable</th>
+            <th scope="col">Timestamp</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for request in requests %}
+        <tr>
+            <th scope="row">{{ loop.index }}</th>
+            <td>{{ host }}</td>
+            <td>{{ request.method }}</td>
+            <td>{{ request.uri }}</td>
+            <td>{{ request.query_string }}</td>
+            <td>{{ request.headers }}</td>
+            <td>{{ request.body }}</td>
+            <td>{{ request.acceptable }}</td>
+            <td>{{ request.timestamp }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+</html>

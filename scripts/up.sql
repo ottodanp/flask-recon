@@ -14,5 +14,6 @@ CREATE TABLE IF NOT EXISTS "requests"
     "request_body"      VARCHAR      NOT NULL,
     "acceptable"        BOOLEAN      NOT NULL,
     "remote_address_id" INT,
+    "created_at"        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("remote_address_id") REFERENCES "remote_hosts" ("remote_host_id")
 );

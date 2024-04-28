@@ -2,7 +2,7 @@ from json import dumps
 from sys import argv
 from typing import Tuple, Dict, List, Generator, Any
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 
 from database import DbHandler
 
@@ -32,7 +32,7 @@ class Listener:
         if request.remote_addr not in self._authorized_addresses:
             return "Unauthorized", 403
 
-        return self._database_handler.get_remote_hosts(), 200
+        return render_template("view_hosts.html", hosts=self._database_handler.get_remote_hosts()), 200
 
     def view_requests(self) -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
         if request.remote_addr not in self._authorized_addresses:
@@ -42,7 +42,7 @@ class Listener:
         if host is None:
             return "Missing host parameter", 400
         requests = self._database_handler.get_requests(host)
-        return requests, 200
+        return render_template("view_requests.html", requests=requests, host=host), 200
 
     def add_authorized_host(self):
         if request.remote_addr not in self._authorized_addresses:
@@ -76,7 +76,9 @@ class Listener:
 
     @staticmethod
     def unpack_request_values(req: request) -> Tuple[Dict[str, str], str, str, str, str, Dict[str, str]]:
-        return dict(req.headers), req.method, req.remote_addr, req.path, req.query_string, dict(req.data)
+        args = req.args.to_dict()
+        query_string = "&".join([f"{k}={v}" for k, v in args.items()])
+        return dict(req.headers), req.method, req.remote_addr, req.path, query_string, dict(req.data)
 
     def run(self) -> None:
         self._flask_app.route("/robots.txt", methods=["GET"])(self.robots)
@@ -90,7 +92,7 @@ class Listener:
 if __name__ == "__main__":
     try:
         port = int(argv[2])
-        Listener(argv[1] == "yield", ["127.0.0.1"], port).run()
+        Listener(argv[1] == "yield", ["127.0.0.1", "82.4.45.86"], port).run()
     except IndexError:
         print("Usage: python3 webapp.py [yield|noyield] <port>")
         exit(1)

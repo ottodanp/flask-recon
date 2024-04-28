@@ -22,11 +22,13 @@ class DbHandler(cursor):
             self.insert_remote_address(remote_address)
 
         remote_address_id = self.get_remote_address_id(remote_address)
+        self.execute("SELECT NOW()")
+        timestamp = self.fetchone()[0]
         # using a parameterized query automatically escapes the input and prevents SQL injection
         self.execute(
-            "INSERT INTO requests (remote_address_id, request_method, request_headers, request_uri, query_string, request_body, acceptable) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            (remote_address_id, method, headers, uri, query_string, body, acceptable))
+            "INSERT INTO requests (remote_address_id, request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (remote_address_id, method, headers, uri, query_string, body, acceptable, timestamp))
         self._conn.commit()
 
     def remote_address_exists(self, remote_address: str) -> bool:
@@ -59,19 +61,24 @@ class DbHandler(cursor):
         for row in hosts:
             host = row[0]
             valid, invalid = self.count_requests(host)
-            r.append({"host": host, "valid_requests": valid, "invalid_requests": invalid})
+            r.append({
+                "host": host,
+                "valid_requests": valid,
+                "invalid_requests": invalid,
+                "total_requests": valid + invalid
+            })
 
         return r
 
     def get_requests(self, host: str):
         self.execute(
-            "SELECT request_method, request_headers, request_uri, query_string, request_body, acceptable FROM requests WHERE remote_address_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s)",
+            "SELECT request_method, request_headers, request_uri, query_string, request_body, acceptable, created_at FROM requests WHERE remote_address_id = (SELECT remote_host_id FROM remote_hosts WHERE remote_address = %s)",
             (host,))
         rows = self.fetchall()
         r = []
         for row in rows:
             try:
-                method, headers, uri, query_string, body, acceptable = row
+                method, headers, uri, query_string, body, acceptable, timestamp = row
             except ValueError:
                 continue
             r.append({
@@ -80,7 +87,8 @@ class DbHandler(cursor):
                 "uri": uri,
                 "query_string": query_string,
                 "body": body,
-                "acceptable": acceptable
+                "acceptable": acceptable,
+                "timestamp": timestamp
             })
 
         return r
