@@ -1,4 +1,5 @@
 from json import dumps
+from sys import argv
 from typing import Tuple, Dict, List, Generator, Any
 
 from flask import Flask, request
@@ -11,12 +12,14 @@ class Listener:
     _authorized_addresses: List[str]
     _yield_forever: bool
     _database_handler: DbHandler
+    _port: int
 
-    def __init__(self, yield_forever: bool, authorized_hosts: List[str]) -> None:
+    def __init__(self, yield_forever: bool, authorized_hosts: List[str], port: int) -> None:
         self._flask_app = Flask(__name__)
         self._authorized_addresses = authorized_hosts
         self._yield_forever = yield_forever
         self._database_handler = DbHandler("requests", "postgres", "postgres", "localhost", "5432")
+        self._port = port
 
     def error_handler(self, _) -> Tuple[str, int] | Generator[str, Any, Tuple[str, int]]:
         return self.handle_request(*self.unpack_request_values(request))
@@ -81,8 +84,13 @@ class Listener:
         self._flask_app.route("/view_requests", methods=["GET"])(self.view_requests)
         self._flask_app.route("/add_authorized_host", methods=["GET"])(self.add_authorized_host)
         self._flask_app.errorhandler(404)(self.error_handler)
-        self._flask_app.run(host="0.0.0.0", port=80)
+        self._flask_app.run(host="0.0.0.0", port=self._port)
 
 
 if __name__ == "__main__":
-    Listener(True, ["127.0.0.1"]).run()
+    try:
+        port = int(argv[2])
+        Listener(argv[1] == "yield", ["127.0.0.1"], port).run()
+    except IndexError:
+        print("Usage: python3 webapp.py [yield|noyield] <port>")
+        exit(1)
