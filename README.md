@@ -40,37 +40,33 @@ sudo python3 -m passive_honeypot [yield|noyield] [ssl|nossl] <port>
 #### Building an API around the honeypot:
 
 ```python
-from typing import Tuple, List, Dict, Any
-
 from flask import Flask, request
-from passive_honeypot import Listener
 
-listener = Listener(
-  flask_app=Flask(__name__),
-  yield_forever=True,
-  run_with_ssl=False,
-  authorized_hosts=["127.0.0.1"],
-  port=80
+from flask_recon.server import Listener
+from flask_recon.structures import RemoteHost
+
+app = Flask(__name__)
+listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
+listener.connect_database(
+  dbname="flask_recon",
+  user="postgres",
+  password="postgres",
+  host="localhost",
+  port="5432"
 )
 
 
-@listener.route("/api/search_requests")
-def search_requests() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
+@listener.route("/api/all_requests")
+def search_requests():
   host = request.args.get("host")
   if not host:
     return "Invalid host", 400
 
-  if not listener.database_handler.host_is_authorized(host):
-    return "Unauthorized", 403
-
-  return listener.database_handler.get_requests(host), 200
+  return listener.database_handler.get_requests(RemoteHost(host)), 200
 
 
-@listener.route("/api/search_hosts")
-def search_hosts() -> Tuple[List[Dict[str, Any]], int] | Tuple[str, int]:
-  if not listener.database_handler.host_is_authorized(request.remote_addr):
-    return "Unauthorized", 403
-
+@listener.route("/api/all_hosts")
+def search_hosts():
   return listener.database_handler.get_remote_hosts(), 200
 
 
@@ -97,7 +93,7 @@ def index() -> str:
 # Any other existing routes
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=80)
 ```
 
 ###### After:
@@ -105,26 +101,27 @@ if __name__ == '__main__':
 ```python
 from flask import Flask
 
-from passive_honeypot import Listener
+from flask_recon.server import Listener
 
 app = Flask(__name__)
-listener = Listener(
-  flask_app=app,
-  yield_forever=True,
-  run_with_ssl=False,
-  authorized_hosts=["127.0.0.1"],
-  port=80
-)
 
 
 @app.route("/index")
 def index() -> str:
-  return "Hello, World!"
+    return "Hello, World!"
 
 
 # Any other existing routes
 
 if __name__ == '__main__':
-  # app.run()
-  listener.run()
+    listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
+    listener.connect_database(
+        dbname="flask_recon",
+        user="postgres",
+        password="postgres",
+        host="localhost",
+        port="5432"
+    )
+    app.run(host="0.0.0.0", port=80)
+
 ```
