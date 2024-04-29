@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>All Endpoints</title>
+    {% include 'head.html' %}
+</head>
+<body>
+{% include 'navbar.html' %}
+
+<div class="container d-flex justify-content-center mt-5">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Endpoint</th>
+            <th scope="col">Occurences</th>
+            <th scope="col">Hosts</th>
+            <th scope="col">Requests</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for endpoint in endpoints %}
+        <tr>
+            <th scope="row">{{ loop.index }}</th>
+            <td>{{ endpoint.0 }}</td>
+            <td>{{ endpoint.1 }}</td>
+            <td>
+                <a href="/view_hosts_by_endpoint?endpoint={{ endpoint.0 }}">
+                    <button type="button" class="btn btn-primary">
+                        Hosts
+                    </button>
+                </a>
+            </td>
+            <td>
+                <a href="/view_requests_by_endpoint?endpoint={{ endpoint.0 }}">
+                    <button type="button" class="btn btn-primary">
+                        Requests
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include 'footer.html' %}
+</body>
+</html>

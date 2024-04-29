@@ -4,8 +4,8 @@ from typing import Tuple, Dict, List, Generator, Any, Union
 
 from flask import Flask, request, render_template, redirect
 
-from passive_honeypot.config import Config
 from passive_honeypot.database import DbHandler
+from passive_honeypot.config import Config
 
 
 class Listener:
@@ -46,14 +46,14 @@ class Listener:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
-        return render_template("passive_honeypot/templates/home.html"), 200
+        return render_template("home.html"), 200
 
     def view_hosts(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
         hosts = self._database_handler.get_remote_hosts()
-        return render_template("passive_honeypot/templates/view_hosts.html", hosts=hosts), 200
+        return render_template("view_hosts.html", hosts=hosts), 200
 
     def view_requests(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
@@ -65,7 +65,34 @@ class Listener:
         if host is None:
             return "Missing host parameter", 400
         requests = self._database_handler.get_requests(host)
-        return render_template("passive_honeypot/templates/view_requests.html", requests=requests, host=host), 200
+        return render_template("view_requests.html", requests=requests, host=host), 200
+
+    def get_endpoints(self):
+        if not self._database_handler.host_is_authorized(request.remote_addr):
+            return "Unauthorized", 403
+
+        return render_template("all_endpoints.html", endpoints=self._database_handler.get_all_endpoints()), 200
+
+    def get_hosts_by_endpoint(self):
+        if not self._database_handler.host_is_authorized(request.remote_addr):
+            return "Unauthorized", 403
+
+        endpoint = request.args.get("endpoint")
+        if endpoint is None:
+            return "Missing endpoint parameter", 400
+
+        return render_template("hosts_by_endpoint.html", hosts=self._database_handler.get_hosts_by_endpoint(endpoint)), 200
+
+    def view_requests_by_endpoint(self):
+        if not self._database_handler.host_is_authorized(request.remote_addr):
+            return "Unauthorized", 403
+
+        endpoint = request.args.get("endpoint")
+        if endpoint is None:
+            return "Missing endpoint parameter", 400
+
+        requests = self._database_handler.get_requests_by_endpoint(endpoint)
+        return render_template("view_requests_by_endpoint.html", requests=requests, endpoint=endpoint), 200
 
     def add_authorized_host(self):
         if not self._database_handler.host_is_authorized(request.remote_addr):
@@ -115,13 +142,16 @@ class Listener:
         self._flask_app.route("/robots.txt", methods=["GET"])(self.robots)
         self._flask_app.route("/view_hosts", methods=["GET"])(self.view_hosts)
         self._flask_app.route("/view_requests", methods=["GET"])(self.view_requests)
+        self._flask_app.route("/view_endpoints", methods=["GET"])(self.get_endpoints)
+        self._flask_app.route("/view_hosts_by_endpoint", methods=["GET"])(self.get_hosts_by_endpoint)
+        self._flask_app.route("/view_requests_by_endpoint", methods=["GET"])(self.view_requests_by_endpoint)
         self._flask_app.route("/add_authorized_host", methods=["GET"])(self.add_authorized_host)
         self._flask_app.route("/home", methods=["GET"])(self.admin_index)
         self._flask_app.route("/favicon.ico", methods=["GET"])(self.favicon)
-        for i in [404, 403, 500]:
+        for i in [400, 404, 403, 500]:
             self._flask_app.errorhandler(i)(self.error_handler)
         if self._run_with_ssl:
-            self._flask_app.run(host="0.0.0.0", port=self._port, ssl_context=("cert.pem", "key.pem"))
+            self._flask_app.run(host="0.0.0.0", port=self._port, ssl_context="adhoc")
         else:
             self._flask_app.run(host="0.0.0.0", port=self._port)
 

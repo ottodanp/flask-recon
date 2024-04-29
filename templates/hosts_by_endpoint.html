@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Hosts requesting {{ endpoint }}</title>
+    {% include 'head.html' %}
+</head>
+<body>
+{% include 'navbar.html' %}
+
+<div class="container d-flex justify-content-center mt-5">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Endpoint</th>
+            <th scope="col">Occurences</th>
+            <th scope="col">View IP Details</th>
+            <th scope="col">View Other Requests</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for host in hosts %}
+        <tr>
+            <th scope="row">{{ loop.index }}</th>
+            <td>{{ host.0 }}</td>
+            <td>{{ host.1 }}</td>
+            <td>
+                <a href="https://whatismyipaddress.com/ip/{{ host.0 }}" target="_blank">
+                    <button type="button" class="btn btn-primary">
+                        IP Details
+                    </button>
+                </a>
+            </td>
+            <td>
+                <a href="/view_requests?host={{ host.0 }}">
+                    <button type="button" class="btn btn-primary">
+                        View Requests
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% include 'footer.html' %}
+</body>
+</html>
