@@ -4,8 +4,8 @@ from typing import Tuple, Dict, List, Generator, Any, Union
 
 from flask import Flask, request, render_template, redirect
 
-from config import Config
-from database import DbHandler
+from passive_honeypot.config import Config
+from passive_honeypot.database import DbHandler
 
 
 class Listener:
@@ -46,14 +46,14 @@ class Listener:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
-        return render_template("home.html"), 200
+        return render_template("passive_honeypot/templates/home.html"), 200
 
     def view_hosts(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
             return "Unauthorized", 403
 
         hosts = self._database_handler.get_remote_hosts()
-        return render_template("view_hosts.html", hosts=hosts), 200
+        return render_template("passive_honeypot/templates/view_hosts.html", hosts=hosts), 200
 
     def view_requests(self) -> Union[Tuple[List[Dict[str, Any]], int], Tuple[str, int]]:
         if not self._database_handler.host_is_authorized(request.remote_addr):
@@ -65,7 +65,7 @@ class Listener:
         if host is None:
             return "Missing host parameter", 400
         requests = self._database_handler.get_requests(host)
-        return render_template("view_requests.html", requests=requests, host=host), 200
+        return render_template("passive_honeypot/templates/view_requests.html", requests=requests, host=host), 200
 
     def add_authorized_host(self):
         if not self._database_handler.host_is_authorized(request.remote_addr):
