@@ -25,14 +25,14 @@
             <td>{{ endpoint.0 }}</td>
             <td>{{ endpoint.1 }}</td>
             <td>
-                <a href="/view_hosts_by_endpoint?endpoint={{ endpoint.0 }}">
+                <a href="/hosts_by_endpoint?endpoint={{ endpoint.0 }}">
                     <button type="button" class="btn btn-primary">
                         Hosts
                     </button>
                 </a>
             </td>
             <td>
-                <a href="/view_requests_by_endpoint?endpoint={{ endpoint.0 }}">
+                <a href="/requests_by_endpoint?endpoint={{ endpoint.0 }}">
                     <button type="button" class="btn btn-primary">
                         Requests
                     </button>
@@ -43,7 +43,6 @@
         </tbody>
     </table>
 </div>
-
 {% include 'footer.html' %}
 </body>
 </html>

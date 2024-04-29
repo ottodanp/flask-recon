@@ -1,26 +1,37 @@
-CREATE TABLE IF NOT EXISTS "remote_hosts"
+CREATE TABLE IF NOT EXISTS "actors"
 (
-    "remote_host_id" INT          NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "remote_host"    VARCHAR(255) NOT NULL
+    "actor_id" SERIAL PRIMARY KEY,
+    "host"     VARCHAR(255) NOT NULL,
+    "flagged"  BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS "services"
+(
+    "service_id" SERIAL PRIMARY KEY,
+    "actor_id"   INTEGER      NOT NULL,
+    "service"    VARCHAR(255) NOT NULL,
+    "port"       INTEGER      NOT NULL,
+    FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
 );
 
 CREATE TABLE IF NOT EXISTS "requests"
 (
-    "request_id"      INT          NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "request_method"  VARCHAR(255) NOT NULL,
-    "request_uri"     VARCHAR      NOT NULL,
-    "query_string"    VARCHAR      NOT NULL,
-    "request_headers" VARCHAR      NOT NULL,
-    "request_body"    VARCHAR      NOT NULL,
-    "acceptable"      BOOLEAN      NOT NULL,
-    "remote_host_id"  INT,
-    "port"            INT          NOT NULL,
-    "created_at"      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY ("remote_host_id") REFERENCES "remote_hosts" ("remote_host_id")
+    "request_id"   SERIAL PRIMARY KEY,
+    "actor_id"     INTEGER      NOT NULL,
+    "timestamp"    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "method"       VARCHAR(255) NOT NULL,
+    "path"         VARCHAR(255) NOT NULL,
+    "body"         TEXT,
+    "headers"      TEXT,
+    "query_string" TEXT,
+    "port"         INTEGER      NOT NULL,
+    "acceptable"   BOOLEAN      NOT NULL,
+    FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
 );
 
-CREATE TABLE IF NOT EXISTS "authorized_hosts"
+CREATE TABLE IF NOT EXISTS "honeypots"
 (
-    "remote_host_id" INT NOT NULL,
-    FOREIGN KEY ("remote_host_id") REFERENCES "remote_hosts" ("remote_host_id")
+    "honeypot_id"    SERIAL PRIMARY KEY,
+    "file_name"      VARCHAR(255) NOT NULL,
+    "dummy_contents" TEXT         NOT NULL
 );

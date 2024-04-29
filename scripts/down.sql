@@ -1,5 +1,4 @@
-DROP TABLE requests;
-
-DROP TABLE remote_hosts;
-
-DROP TABLE authorized_hosts;
+DROP TABLE "requests";
+DROP TABLE "services";
+DROP TABLE "actors";
+DROP TABLE "honeypots";

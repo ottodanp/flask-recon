@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Viewed Hosts</title>
+    <title>All Hosts</title>
     {% include 'head.html' %}
 </head>
 <body>
@@ -13,34 +13,23 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Host</th>
-            <th scope="col">Total Requests</th>
             <th scope="col">Acceptable Requests</th>
             <th scope="col">Unacceptable Requests</th>
+            <th scope="col">Total Requests</th>
             <th scope="col">View Requests</th>
-            <th scope="col">View IP Details</th>
         </tr>
         </thead>
         <tbody>
         {% for host in hosts %}
         <tr>
             <th scope="row">{{ loop.index }}</th>
-            <td>{{ host.host }}</td>
-            <td>{{ host.total_requests }}</td>
-            <td>{{ host.valid_requests }}</td>
-            <td>{{ host.invalid_requests }}</td>
+            <td>{{ host.0 }}</td>
+            <td>{{ host.1 }}</td>
+            <td>{{ host.2 }}</td>
+            <td>{{ host.3 }}</td>
             <td>
-                <a href="/view_requests?host={{ host.host }}">
-                    <button type="button" class="btn btn-primary" data-toggle="modal"
-                            data-target="#viewRequestsModal{{ loop.index }}">
-                        View Requests
-                    </button>
-                </a>
-            </td>
-            <td>
-                <a href="https://whatismyipaddress.com/ip/{{ host.host }}" target="_blank">
-                    <button type="button" class="btn btn-primary">
-                        IP Details
-                    </button>
+                <a href="/requests_by_host?host={{ host.0 }}">
+                    <button type="button" class="btn btn-primary" data-toggle="modal">View Requests</button>
                 </a>
             </td>
         </tr>
@@ -50,6 +39,5 @@
 </div>
 
 {% include 'footer.html' %}
-
 </body>
 </html>
