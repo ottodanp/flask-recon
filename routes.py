@@ -57,9 +57,18 @@ class WebApp:
 
     def html_requests_by_host(self):
         host = request.args.get("host")
-        return render_template("requests_by_host.html",
-                               requests=self._listener.database_handler.get_requests(RemoteHost(host)),
-                               host=host)
+        if host is None:
+            return "Missing host parameter", 400
+
+        endpoint = request.args.get("endpoint")
+        remote_host = RemoteHost(host)
+
+        if endpoint is not None:
+            requests = self._listener.database_handler.get_requests_by_endpoint_and_host(endpoint, remote_host)
+        else:
+            requests = self._listener.database_handler.get_requests(remote_host)
+
+        return render_template("requests_by_host.html", requests=requests, host=host)
 
     @staticmethod
     def home():

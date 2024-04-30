@@ -42,7 +42,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for key, value in request.headers.items() %}
+                    {% for key, value in request.request_headers.items() %}
                     <tr>
                         <th scope="row">{{ loop.index }}</th>
                         <td>{{ key }}</td>

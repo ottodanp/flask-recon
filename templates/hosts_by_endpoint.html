@@ -13,7 +13,9 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Host</th>
+            <th scope="col">Count</th>
             <th scope="col">Requests</th>
+            <th scope="col">Other Requests</th>
         </tr>
         </thead>
         <tbody>
@@ -21,10 +23,18 @@
         <tr>
             <th scope="row">{{ loop.index }}</th>
             <td>{{ host.0 }}</td>
+            <td>{{ host.1 }}</td>
+            <td>
+                <a href="/requests_by_host?host={{ host.0 }}&endpoint={{ endpoint }}">
+                    <button type="button" class="btn btn-primary">
+                        Requests from {{ host.0 }} to {{ endpoint }}
+                    </button>
+                </a>
+            </td>
             <td>
                 <a href="/requests_by_host?host={{ host.0 }}">
                     <button type="button" class="btn btn-primary">
-                        Requests
+                        Requests from {{ host.0 }}
                     </button>
                 </a>
             </td>

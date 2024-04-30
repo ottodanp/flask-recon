@@ -82,9 +82,19 @@ class DatabaseHandler(cursor):
             r.append((endpoint, self.count_endpoint(endpoint)))
         return r
 
-    def get_hosts_by_endpoint(self, endpoint: str) -> List[str]:
-        self.execute("SELECT host FROM requests WHERE path = %s", (endpoint,))
-        return [row[0] for row in self.fetchall()]
+    def count_requests_from_actor(self, actor_id: str, endpoint: str) -> int:
+        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND path = %s", (actor_id, endpoint))
+        return self.fetchone()[0]
+
+    def get_hosts_by_endpoint(self, endpoint: str) -> List[Tuple[str, int]]:
+        self.execute("SELECT actor_id FROM requests WHERE path = %s", (endpoint,))
+        actors = self.fetchall()
+        r = []
+        for row in actors:
+            self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
+            host = self.fetchone()[0]
+            r.append((host, self.count_requests_from_actor(row[0], endpoint)))
+        return r
 
     def get_requests_by_endpoint(self, endpoint: str) -> List[Dict[str, Any]]:
         self.execute(
@@ -100,7 +110,27 @@ class DatabaseHandler(cursor):
                 "timestamp": row[1],
                 "request_method": row[2],
                 "request_body": loads(row[3]),
-                "headers": loads(row[4]),
+                "request_headers": loads(row[4]),
+                "query_string": row[5],
+                "port": row[6],
+                "is_acceptable": row[7],
+                "request_uri": row[8]
+            })
+        return r
+
+    def get_requests_by_endpoint_and_host(self, endpoint: str, host: RemoteHost) -> List[Dict[str, Any]]:
+        self.execute(
+            "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path FROM requests WHERE path = %s AND actor_id = %s",
+            (endpoint, self.get_actor_id(host)))
+        requests = self.fetchall()
+        r = []
+        for row in requests:
+            r.append({
+                "host": host.address,
+                "timestamp": row[1],
+                "request_method": row[2],
+                "request_body": loads(row[3]),
+                "request_headers": loads(row[4]),
                 "query_string": row[5],
                 "port": row[6],
                 "is_acceptable": row[7],
