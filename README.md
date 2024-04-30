@@ -18,7 +18,7 @@
 Linux:
 
 ```bash
-sudo apt-get install python3 python3-psycopg2 python3-flask postgresql
+sudo apt-get install python3-psycopg2 python3-flask
 ```
 
 Windows:
@@ -31,8 +31,16 @@ pip install psycopg2 flask
 
 ### Standalone:
 
+Linux:
+
 ```bash
-sudo python3 -m passive_honeypot [yield|noyield] [ssl|nossl] <port>
+sudo python3 -m flask_recon <port> [api|noapi] [webapp|nowebapp]
+```
+
+Windows:
+
+```bash
+python -m flask_recon <port> [api|noapi] [webapp|nowebapp]
 ```
 
 ### As part of another Flask application:
@@ -48,30 +56,30 @@ from flask_recon.structures import RemoteHost
 app = Flask(__name__)
 listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
 listener.connect_database(
-  dbname="flask_recon",
-  user="postgres",
-  password="postgres",
-  host="localhost",
-  port="5432"
+    dbname="flask_recon",
+    user="postgres",
+    password="postgres",
+    host="localhost",
+    port="5432"
 )
 
 
 @listener.route("/api/all_requests")
 def search_requests():
-  host = request.args.get("host")
-  if not host:
-    return "Invalid host", 400
+    host = request.args.get("host")
+    if not host:
+        return "Invalid host", 400
 
-  return listener.database_handler.get_requests(RemoteHost(host)), 200
+    return listener.database_handler.get_requests(RemoteHost(host)), 200
 
 
 @listener.route("/api/all_hosts")
 def search_hosts():
-  return listener.database_handler.get_remote_hosts(), 200
+    return listener.database_handler.get_remote_hosts(), 200
 
 
 if __name__ == '__main__':
-  listener.run()
+    listener.run()
 
 ```
 
