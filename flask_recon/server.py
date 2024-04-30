@@ -92,6 +92,7 @@ class Listener:
         for i in [400, 404, 403]:
             self._flask.errorhandler(i)(self.error_handler)
         self._flask.route("/robots.txt", methods=["GET"])((lambda: ("User-agent: *\nDisallow: /", 200)))
+        self._flask.route("/sitemap.xml", methods=["GET"])((lambda: ("<?xml version='1.0' encoding='UTF-8'?>", 200)))
 
     @property
     def database_handler(self) -> DatabaseHandler:
