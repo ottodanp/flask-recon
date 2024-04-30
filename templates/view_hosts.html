@@ -17,6 +17,9 @@
             <th scope="col">Unacceptable Requests</th>
             <th scope="col">Total Requests</th>
             <th scope="col">View Requests</th>
+            <th scope="col">View IP Details</th>
+            <th scope="col">Arin Lookup</th>
+            <th scope="col">Spamhaus Check</th>
         </tr>
         </thead>
         <tbody>
@@ -30,6 +33,21 @@
             <td>
                 <a href="/requests_by_host?host={{ host.0 }}">
                     <button type="button" class="btn btn-primary" data-toggle="modal">View Requests</button>
+                </a>
+            </td>
+            <td>
+                <a href="https://whatismyipaddress.com/ip/{{ host.0 }}" target="_blank">
+                    <button type="button" class="btn btn-primary">IP Details</button>
+                </a>
+            </td>
+            <td>
+                <a href="https://mxtoolbox.com/SuperTool.aspx?action=arin%3a{{ host.0 }}&run=toolpage">
+                    <button type="button" class="btn btn-primary">Arin Lookup</button>
+                </a>
+            </td>
+            <td>
+                <a href="https://check.spamhaus.org/listed/?searchterm={{ host.0 }}">
+                    <button type="button" class="btn btn-primary">Spamhaus Check</button>
                 </a>
             </td>
         </tr>
