@@ -88,11 +88,19 @@ class Listener:
             "Content-Length": str(length)
         }
 
+    @staticmethod
+    def sitemap() -> Tuple[str, int]:
+        return "<?xml version='1.0' encoding='UTF-8'?>", 200
+
+    @staticmethod
+    def robots() -> Tuple[str, int]:
+        return "User-agent: *\nDisallow: /", 200
+
     def add_routes(self):
         for i in [400, 404, 403]:
             self._flask.errorhandler(i)(self.error_handler)
-        self._flask.route("/robots.txt", methods=["GET"])((lambda: ("User-agent: *\nDisallow: /", 200)))
-        self._flask.route("/sitemap.xml", methods=["GET"])((lambda: ("<?xml version='1.0' encoding='UTF-8'?>", 200)))
+        self._flask.route("/robots.txt", methods=["GET"])(self.robots)
+        self._flask.route("/sitemap.xml", methods=["GET"])(self.sitemap)
 
     @property
     def database_handler(self) -> DatabaseHandler:
