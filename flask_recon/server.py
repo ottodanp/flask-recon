@@ -53,7 +53,7 @@ class Listener:
         if req.is_acceptable:
             return "404 Not Found", 404
 
-        file = self.grab_payload_file(req.request_uri)
+        file = self.grab_payload_file(req.uri)
         if (honeypot_response := self._database_handler.get_honeypot(file)) is not None:
             response = Response("", status=200, headers=self.text_response_headers(len(honeypot_response)))
             yield honeypot_response

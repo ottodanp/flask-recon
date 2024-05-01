@@ -45,8 +45,8 @@ class DatabaseHandler(cursor):
         self.execute(
             "INSERT INTO requests (actor_id, timestamp, method, path, body, headers, query_string, port, acceptable) "
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (actor_id, timestamp, request.request_method.value, request.request_uri, dumps(request.request_body),
-             dumps(request.request_headers), request.query_string, request.local_port, request.is_acceptable))
+            (actor_id, timestamp, request.method.value, request.uri, dumps(request.body),
+             dumps(request.headers), request.query_string, request.local_port, request.is_acceptable))
         self._conn.commit()
 
     def get_honeypot(self, file: str) -> Optional[str]:
@@ -62,11 +62,10 @@ class DatabaseHandler(cursor):
         return self.fetchone()[0]
 
     def count_requests(self, host: RemoteHost) -> Tuple[int, int]:
-        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = TRUE",
-                     (self.get_actor_id(host),))
+        actor_id = self.get_actor_id(host)
+        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = TRUE",(actor_id,))
         valid = self.fetchone()[0]
-        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = FALSE",
-                     (self.get_actor_id(host),))
+        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = FALSE",(actor_id,))
         invalid = self.fetchone()[0]
         return valid, invalid
 
@@ -80,7 +79,7 @@ class DatabaseHandler(cursor):
                 continue
             e.add(endpoint)
             r.append((endpoint, self.count_endpoint(endpoint)))
-        return r
+        return sorted(r, key=lambda x: x[1], reverse=True)
 
     def count_requests_from_actor(self, actor_id: str, endpoint: str) -> int:
         self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND path = %s", (actor_id, endpoint))
@@ -89,12 +88,16 @@ class DatabaseHandler(cursor):
     def get_hosts_by_endpoint(self, endpoint: str) -> List[Tuple[str, int]]:
         self.execute("SELECT actor_id FROM requests WHERE path = %s", (endpoint,))
         actors = self.fetchall()
+        e = set()
         r = []
         for row in actors:
             self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
             host = self.fetchone()[0]
+            if host in e:
+                continue
+            e.add(host)
             r.append((host, self.count_requests_from_actor(row[0], endpoint)))
-        return r
+        return sorted(r, key=lambda x: x[1], reverse=True)
 
     def get_requests_by_endpoint(self, endpoint: str) -> List[Dict[str, Any]]:
         self.execute(
@@ -108,15 +111,15 @@ class DatabaseHandler(cursor):
             r.append({
                 "host": host,
                 "timestamp": row[1],
-                "request_method": row[2],
-                "request_body": loads(row[3]),
-                "request_headers": loads(row[4]),
+                "method": row[2],
+                "body": loads(row[3]),
+                "headers": loads(row[4]),
                 "query_string": row[5],
                 "port": row[6],
                 "is_acceptable": row[7],
-                "request_uri": row[8]
+                "uri": row[8]
             })
-        return r
+        return sorted(r, key=lambda x: x["timestamp"], reverse=True)
 
     def get_requests_by_endpoint_and_host(self, endpoint: str, host: RemoteHost) -> List[Dict[str, Any]]:
         self.execute(
@@ -128,15 +131,15 @@ class DatabaseHandler(cursor):
             r.append({
                 "host": host.address,
                 "timestamp": row[1],
-                "request_method": row[2],
-                "request_body": loads(row[3]),
-                "request_headers": loads(row[4]),
+                "method": row[2],
+                "body": loads(row[3]),
+                "headers": loads(row[4]),
                 "query_string": row[5],
                 "port": row[6],
                 "is_acceptable": row[7],
-                "request_uri": row[8]
+                "uri": row[8]
             })
-        return r
+        return sorted(r, key=lambda x: x["timestamp"], reverse=True)
 
     def get_remote_hosts(self) -> List[Tuple[str, int, int, int]]:
         self.execute("SELECT host FROM actors")
@@ -144,8 +147,9 @@ class DatabaseHandler(cursor):
         for row in self.fetchall():
             host = RemoteHost(row[0])
             valid, invalid = self.count_requests(host)
-            r.append((host.address, valid, invalid, valid + invalid))
-        return r
+            total = valid + invalid
+            r.append((host.address, valid, invalid, total))
+        return sorted(r, key=lambda x: x[3], reverse=True)
 
     def get_requests(self, host: RemoteHost) -> List[IncomingRequest]:
         self.execute(
@@ -161,4 +165,4 @@ class DatabaseHandler(cursor):
                 query_string=row[5],
                 request_body=loads(row[3])
             ))
-        return r
+        return sorted(r, key=lambda x: x.timestamp, reverse=True)

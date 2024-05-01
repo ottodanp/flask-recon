@@ -29,8 +29,8 @@
         <tr>
             <th scope="row">{{ loop.index }}</th>
             <td>{{ request.host }}</td>
-            <td>{{ request.request_method }}</td>
-            <td>{{ request.request_uri }}</td>
+            <td>{{ request.method }}</td>
+            <td>{{ request.uri }}</td>
             <td>{{ request.query_string }}</td>
             <td>
                 <table class="table table-striped">
@@ -42,7 +42,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for key, value in request.request_headers.items() %}
+                    {% for key, value in request.headers.items() %}
                     <tr>
                         <th scope="row">{{ loop.index }}</th>
                         <td>{{ key }}</td>
@@ -62,7 +62,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for key, value in request.request_body.items() %}
+                    {% for key, value in request.body.items() %}
                     <tr>
                         <th scope="row">{{ loop.index }}</th>
                         <td>{{ key }}</td>

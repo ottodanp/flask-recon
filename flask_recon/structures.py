@@ -3,6 +3,7 @@ from typing import Dict, Optional, Self
 
 import werkzeug.exceptions
 from flask import Request
+from datetime import datetime
 
 HALT_PAYLOAD = "STOP SCANNING"
 
@@ -105,9 +106,11 @@ class IncomingRequest:
     _request_body: Optional[Dict[str, str]]
     _is_acceptable: bool
     _headers: dict
+    _timestamp: str
 
     def __init__(self, local_port: int):
         self._local_port = local_port
+        self._timestamp = datetime.now().isoformat()
 
     def from_request(self, request: Request) -> Self:
         self._host = RemoteHost(request.remote_addr)
@@ -140,15 +143,15 @@ class IncomingRequest:
         return self._local_port
 
     @property
-    def request_method(self) -> RequestType:
+    def method(self) -> RequestType:
         return self._request_method
 
     @property
-    def request_headers(self) -> Optional[Dict[str, str]]:
+    def headers(self) -> Optional[Dict[str, str]]:
         return self._request_headers
 
     @property
-    def request_uri(self) -> str:
+    def uri(self) -> str:
         return self._request_uri
 
     @property
@@ -156,9 +159,14 @@ class IncomingRequest:
         return self._query_string
 
     @property
-    def request_body(self) -> Optional[Dict[str, str]]:
+    def body(self) -> Optional[Dict[str, str]]:
         return self._request_body
 
     @property
     def is_acceptable(self) -> bool:
-        return self.request_method == "GET" and self.request_uri in ["/", "/robots.txt"]
+        return self.method == "GET" and self.uri in ["/", "/robots.txt"]
+
+    @property
+    def timestamp(self) -> str:
+        return self._timestamp
+
