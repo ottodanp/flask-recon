@@ -43,10 +43,10 @@ class DatabaseHandler(cursor):
         timestamp = self.fetchone()[0]
         # using a parameterized query automatically escapes the input and prevents SQL injection
         self.execute(
-            "INSERT INTO requests (actor_id, timestamp, method, path, body, headers, query_string, port, acceptable) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO requests (actor_id, timestamp, method, path, body, headers, query_string, port, acceptable, threat_level) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (actor_id, timestamp, request.method.value, request.uri, dumps(request.body),
-             dumps(request.headers), request.query_string, request.local_port, request.is_acceptable))
+             dumps(request.headers), request.query_string, request.local_port, request.is_acceptable, request.threat_level))
         self._conn.commit()
 
     def get_honeypot(self, file: str) -> Optional[str]:

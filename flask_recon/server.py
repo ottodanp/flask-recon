@@ -5,6 +5,27 @@ from flask import Flask, request, Response
 from flask_recon.database import DatabaseHandler
 from flask_recon.structures import IncomingRequest, HALT_PAYLOAD, RequestType
 
+KNOWN_PAYLOAD_FILES = [".env", ".config", "wp-config.php", "config.php", "settings.php", "config.inc.php",
+                       "config.inc", "config.ini", "config.yml", "config.yaml", "config.json", "config.xml",
+                       "config.toml", "config.hcl", "config.properties", "config.cfg", "config.conf", "config", "settings",
+                       "settings.ini", "settings.yml", "settings.yaml", "settings.json", "settings.xml", "settings.toml",
+                       "settings.hcl", "settings.properties", "settings.cfg", "settings.conf", "settings", "secrets",
+                       "secrets.ini", "secrets.yml", "secrets.yaml", "secrets.json", "secrets.xml", "secrets.toml",
+                       "secrets.hcl", "secrets.properties", "secrets.cfg", "secrets.conf", "secrets", "database",
+                       "database.ini", "database.yml", "database.yaml", "database.json", "database.xml", "database.toml",
+                       "database.hcl", "database.properties", "database.cfg", "database.conf", "database", "db", "db.ini",
+                       "db.yml", "db.yaml", "db.json", "db.xml", "db.toml", "db.hcl", "db.properties", "db.cfg", "db.conf",
+                       "db", "creds", "creds.ini", "creds.yml", "creds.yaml", "creds.json", "creds.xml", "creds.toml",
+                       "creds.hcl", "creds.properties", "creds.cfg", "creds.conf", "creds", "passwords", "passwords.ini",
+                       "passwords.yml", "passwords.yaml", "passwords.json", "passwords.xml", "passwords.toml",
+                       "passwords.hcl", "passwords.properties", "passwords.cfg", "passwords.conf", "passwords", "keys",
+                       "keys.ini", "keys.yml", "keys.yaml", "keys.json", "keys.xml", "keys.toml", "keys.hcl", "keys.properties",
+                       "keys.cfg", "keys.conf", "keys", "key", "key.ini", "key.yml", "key.yaml", "key.json", "key.xml",
+                       "key.toml", "key.hcl", "key.properties", "key.cfg", "key.conf", "key", "token", "token.ini", "token.yml",
+                       "token.yaml", "token.json", "token.xml", "token.toml", "token.hcl", "token.properties", "token.cfg",
+                       "token.conf", "token", "tokens", "tokens.ini", "tokens.yml", "tokens.yaml", "tokens.json", "tokens.xml",
+                       "tokens.toml", "tokens.hcl", "tokens.properties", "tokens.cfg", "tokens.conf", "tokens", "auth"]
+
 
 class Listener:
     _database_handler: DatabaseHandler
@@ -49,6 +70,7 @@ class Listener:
             query_string=query_string,
             request_body=body,
             timestamp="",
+            threat_level=self.determine_threat_level(RequestType.from_str(method), uri, query_string, body)
         )
         self._database_handler.add_request(req)
         if req.is_acceptable:
@@ -66,6 +88,33 @@ class Listener:
             return "", 200
 
         return "404 Not Found", 404
+
+    @staticmethod
+    def determine_threat_level(method: RequestType, uri: str, query_string: str, body: Dict[str, str]) -> int:
+        method_score, uri_score, query_score, body_score = 0, 0, 0, 0
+        if method in [RequestType.POST, RequestType.PUT]:
+            method_score = 10
+        elif method in [RequestType.DELETE, RequestType.PATCH, RequestType.PRI]:
+            method_score = 5
+        elif method == RequestType.GET:
+            method_score = 1
+        else:
+            method_score = 2
+
+        if uri in ["/", "/robots.txt"]:
+            uri_score = 1
+        elif any(map(uri.__contains__, KNOWN_PAYLOAD_FILES)):
+            uri_score = 10
+        else:
+            uri_score = 5
+
+        if query_string:
+            query_score = 10
+
+        if body:
+            body_score = 10
+
+        return int(round((method_score + uri_score + query_score + body_score) / 10, 0))
 
     @staticmethod
     def unpack_request_values(req: request) -> Tuple[Dict[str, str], str, str, str, str, Dict[str, str]]:
