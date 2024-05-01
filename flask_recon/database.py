@@ -149,7 +149,6 @@ class DatabaseHandler(cursor):
             if host is None:
                 self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
                 host = RemoteHost(self.fetchone()[0])
-            print(row[-1])
             incoming_request = IncomingRequest(row[6]).from_components(
                 host=host.address,
                 timestamp=row[1],
