@@ -2,6 +2,7 @@ from flask import Flask
 
 from flask_recon.server import Listener
 from routes import add_routes
+from sys import argv
 
 if __name__ == '__main__':
     listener = Listener(
@@ -18,4 +19,8 @@ if __name__ == '__main__':
         port="5432"
     )
     add_routes(listener)
-    listener.run(host="0.0.0.0", port=80)
+    if len(argv) != 3:
+        print("Usage: python main.py <port> [ssl|nossl]")
+        exit(1)
+
+    listener.run(host="0.0.0.0", port=int(argv[1]), ssl_context=("cert.pem", "key.pem",) if argv[2] == "ssl" else None)
