@@ -49,10 +49,8 @@ class Listener:
             query_string=query_string,
             request_body=body,
             timestamp="",
-            threat_level=self.determine_threat_level(RequestType.from_str(method), uri, query_string, body)
         )
-        req.determine_threat_level()
-        self._database_handler.add_request(req)
+        self._database_handler.insert_request(req)
         if req.is_acceptable:
             return "404 Not Found", 404
 
@@ -68,34 +66,7 @@ class Listener:
             return "", 200
 
         return "404 Not Found", 404
-
-    @staticmethod
-    def determine_threat_level(method: RequestType, uri: str, query_string: str, body: Dict[str, str]) -> int:
-        method_score, uri_score, query_score, body_score = 0, 0, 0, 0
-        if method in [RequestType.POST, RequestType.PUT]:
-            method_score = 10
-        elif method in [RequestType.DELETE, RequestType.PATCH, RequestType.PRI]:
-            method_score = 5
-        elif method == RequestType.GET:
-            method_score = 1
-        else:
-            method_score = 2
-
-        if uri in ["/", "/robots.txt"]:
-            uri_score = 1
-        elif any(map(uri.__contains__, KNOWN_PAYLOAD_FILES)):
-            uri_score = 10
-        else:
-            uri_score = 5
-
-        if query_string:
-            query_score = 10
-
-        if body:
-            body_score = 10
-
-        return int(round((method_score + uri_score + query_score + body_score) / 10, 0))
-
+    
     @staticmethod
     def unpack_request_values(req: request) -> Tuple[Dict[str, str], str, str, str, str, Dict[str, str]]:
         args = req.args.to_dict()

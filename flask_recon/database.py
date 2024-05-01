@@ -48,10 +48,11 @@ class DatabaseHandler(cursor):
         self.execute("SELECT flagged FROM actors WHERE host = %s", (remote_host.address,))
         return self.fetchone()[0]
 
-    def add_request(self, request: IncomingRequest):
+    def insert_request(self, request: IncomingRequest):
         if not self.actor_exists(request.host):
             self.insert_actor(request.host)
 
+        request.determine_threat_level()
         actor_id = self.get_actor_id(request.host)
         self.execute("SELECT NOW()")
         timestamp = self.fetchone()[0]

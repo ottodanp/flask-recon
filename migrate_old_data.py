@@ -59,7 +59,7 @@ def migrate_new_data():
     )
 
     for request in requests:
-        new_db.add_request(request)
+        new_db.insert_request(request)
 
 
 def update_threat_levels():
