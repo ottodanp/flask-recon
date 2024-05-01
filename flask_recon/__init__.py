@@ -1,3 +1,3 @@
 from .database import DatabaseHandler
 from .server import Listener
-from .structures import RemoteHost, IncomingRequest, RequestType, RemoteHost
+from .structures import RemoteHost, IncomingRequest, RequestType, RemoteHost, HALT_PAYLOAD

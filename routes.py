@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template
 
-from flask_recon.server import Listener
-from flask_recon.structures import RemoteHost
+from flask_recon import Listener, RemoteHost
 
 app = Flask(__name__)
 

@@ -2,8 +2,7 @@ from typing import Tuple, Dict
 
 from flask import Flask, request, Response
 
-from flask_recon.database import DatabaseHandler
-from flask_recon.structures import IncomingRequest, HALT_PAYLOAD, RequestType
+from flask_recon import DatabaseHandler, IncomingRequest, HALT_PAYLOAD, RequestType
 
 
 class Listener:
@@ -66,7 +65,7 @@ class Listener:
             return "", 200
 
         return "404 Not Found", 404
-    
+
     @staticmethod
     def unpack_request_values(req: request) -> Tuple[Dict[str, str], str, str, str, str, Dict[str, str]]:
         args = req.args.to_dict()
