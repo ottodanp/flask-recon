@@ -12,6 +12,8 @@ KNOWN_PAYLOAD_FILES = ["wp-login.php", "xmlrpc.php", "wp-admin", "wp-content", "
                        "settings.ini", "settings.cfg", "settings.txt", "settings.conf", "settings", "database.php",
                        "database.json", "database.xml", "database.yml", "database.yaml", "database.toml",
                        "database.ini", "database.cfg", "database.txt", "database.conf", "database", "db.php", "db.json"]
+MALICIOUS_UA_FLAGS = ["sqlmap", "sqlninja", "havij", "nikto", "w3af", "acunetix", "netsparker", "nmap", "nessus",
+                      "masscan", "zgrab", "zmap"]
 
 
 class RequestType(Enum):
@@ -146,7 +148,16 @@ class IncomingRequest:
         return self
 
     def determine_threat_level(self):
-        method_score, uri_score, query_score, body_score = 5, 5, 5, 5
+        method_score, uri_score, query_score, body_score, ua_score = 5, 5, 5, 5, 5
+
+        if self._request_headers:
+            if "user-agent" in [k.lower() for k in self._request_headers.keys()]:
+                ua = self._request_headers.get("user-agent") or self._headers.get("User-Agent")
+                if any(map(ua.__contains__, MALICIOUS_UA_FLAGS)):
+                    self._threat_level = 10
+                    return
+            else:
+                ua_score = 10
 
         if self._request_method in [RequestType.POST, RequestType.PUT]:
             method_score = 10
@@ -154,6 +165,7 @@ class IncomingRequest:
             method_score = 8
         else:
             method_score = 6
+
         if self._request_uri in ["/", "/robots.txt"]:
             self._threat_level = 1
             return
@@ -162,12 +174,13 @@ class IncomingRequest:
             return
         else:
             uri_score = 7
+
         if self._query_string:
             query_score = 10
         if self._request_body:
             body_score = 10
 
-        self._threat_level = int(round((method_score + uri_score + query_score + body_score) / 4, 0))
+        self._threat_level = int(round((method_score + uri_score + query_score + body_score + ua_score) / 5, 0))
 
     @property
     def host(self) -> RemoteHost:
