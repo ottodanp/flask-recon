@@ -5,15 +5,57 @@ import werkzeug.exceptions
 from flask import Request
 
 HALT_PAYLOAD = "STOP SCANNING"
-KNOWN_PAYLOAD_FILES = ["wp-login.php", "xmlrpc.php", "wp-admin", "wp-content", "wp-includes", "wp-config.php",
-                       ".env", "config.py", ".config", "config.json", "config.php", "config.xml", "config.yml",
-                       "config.yaml", "config.toml", "config.ini", "config.cfg", "config.txt", "config.conf", "config",
-                       "settings.py", "settings.json", "settings.xml", "settings.yml", "settings.yaml", "settings.toml",
-                       "settings.ini", "settings.cfg", "settings.txt", "settings.conf", "settings", "database.php",
-                       "database.json", "database.xml", "database.yml", "database.yaml", "database.toml",
-                       "database.ini", "database.cfg", "database.txt", "database.conf", "database", "db.php", "db.json"]
-MALICIOUS_UA_FLAGS = ["sqlmap", "sqlninja", "havij", "nikto", "w3af", "acunetix", "netsparker", "nmap", "nessus",
-                      "masscan", "zgrab", "zmap"]
+KNOWN_PAYLOAD_FLAGS = {
+    "login": 7,
+    "xmlrpc": 8,
+    "admin": 9,
+    "wp-": 8,
+    ".env": 10,
+    "config": 9,
+    "settings": 9,
+    "database": 9,
+    "db": 7,
+    "php": 8,
+    ".sh": 9,
+    "http://": 6,
+    "https://": 6,
+    "ftp://": 7,
+    "sftp://": 7,
+    "ssh://": 8,
+    "telnet://": 7,
+    "smtp://": 5,
+    "imap://": 5,
+    ".js": 3,
+    "sql": 9,
+    ".txt": 7,
+    "wget": 10,
+    "chmod": 10,
+    "chown": 10,
+    "chgrp": 10,
+    "777": 10,
+    "cd /": 10,
+    "rm -rf": 10,
+}
+MALICIOUS_UA_FLAGS = {
+    "sqlmap": 10,
+    "sqlninja": 10,
+    "havij": 8,
+    "w3af": 10,
+    "acunetix": 10,
+    "netsparker": 10,
+    "nmap": 10,
+    "nessus": 10,
+    "masscan": 7,
+    "zgrab": 10,
+    "zmap": 10,
+    "metasploit": 10,
+    "burp": 10,
+    "curl": 3,
+    "wget": 3,
+    "python": 6,
+    "perl": 6,
+    "ruby": 6,
+}
 
 
 class RequestType(Enum):
@@ -153,9 +195,7 @@ class IncomingRequest:
         if self._request_headers:
             if "user-agent" in [k.lower() for k in self._request_headers.keys()]:
                 ua = self._request_headers.get("user-agent") or self._request_headers.get("User-Agent")
-                if any(map(ua.__contains__, MALICIOUS_UA_FLAGS)):
-                    self._threat_level = 10
-                    return
+                ua_score = self.calc_avg_tl_str(ua, MALICIOUS_UA_FLAGS)
             else:
                 ua_score = 10
 
@@ -168,18 +208,28 @@ class IncomingRequest:
 
         if self._request_uri == "/":
             uri_score = 1
-        elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FILES)):
-            self._threat_level = 10
-            return
+        elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FLAGS.keys())):
+            uri_score = self.calc_avg_tl_str(self._request_uri, KNOWN_PAYLOAD_FLAGS)
         else:
-            uri_score = 7
+            uri_score = 6
 
         if self._query_string:
-            query_score = 10
+            query_score = self.calc_avg_tl_str(self._query_string, KNOWN_PAYLOAD_FLAGS)
         if self._request_body:
             body_score = 10
 
         self._threat_level = int(round((method_score + uri_score + query_score + body_score + ua_score) / 5, 0))
+
+    @staticmethod
+    def calc_avg_tl_str(value: str, flags: Dict[str, int]) -> float:
+        tl, fc = 0, 0
+        for flag, score in flags.items():
+            if flag in value:
+                tl += score
+                fc += 1
+        if fc > 0:
+            return tl / fc
+        return 5
 
     @property
     def host(self) -> RemoteHost:

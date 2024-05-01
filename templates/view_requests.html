@@ -78,7 +78,7 @@
             <td>{{ request.timestamp }}</td>
             <td>{{ request.local_port }}</td>
             <td>
-                <a href="/requests_by_host?host={{ request.host }}">
+                <a href="/requests_by_host?host={{ request.host.address }}">
                     <button type="button" class="btn btn-primary">
                         Actor Requests
                     </button>
