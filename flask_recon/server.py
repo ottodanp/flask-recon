@@ -2,7 +2,8 @@ from typing import Tuple, Dict
 
 from flask import Flask, request, Response
 
-from flask_recon import DatabaseHandler, IncomingRequest, HALT_PAYLOAD, RequestType
+from flask_recon.database import DatabaseHandler
+from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
 
 
 class Listener:

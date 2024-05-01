@@ -4,7 +4,7 @@ from typing import Optional, List, Tuple, Dict, Union
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
 
-from flask_recon import IncomingRequest, RemoteHost
+from flask_recon.structures import IncomingRequest, RemoteHost
 
 
 class DatabaseHandler(cursor):
