@@ -166,9 +166,8 @@ class IncomingRequest:
         else:
             method_score = 6
 
-        if self._request_uri in ["/", "/robots.txt"]:
-            self._threat_level = 1
-            return
+        if self._request_uri == "/":
+            uri_score = 1
         elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FILES)):
             self._threat_level = 10
             return
