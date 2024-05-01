@@ -5,6 +5,13 @@ import werkzeug.exceptions
 from flask import Request
 
 HALT_PAYLOAD = "STOP SCANNING"
+KNOWN_PAYLOAD_FILES = ["wp-login.php", "xmlrpc.php", "wp-admin", "wp-content", "wp-includes", "wp-config.php",
+                       ".env", "config.py", ".config", "config.json", "config.php", "config.xml", "config.yml",
+                       "config.yaml", "config.toml", "config.ini", "config.cfg", "config.txt", "config.conf", "config",
+                       "settings.py", "settings.json", "settings.xml", "settings.yml", "settings.yaml", "settings.toml",
+                       "settings.ini", "settings.cfg", "settings.txt", "settings.conf", "settings", "database.php",
+                       "database.json", "database.xml", "database.yml", "database.yaml", "database.toml",
+                       "database.ini", "database.cfg", "database.txt", "database.conf", "database", "db.php", "db.json"]
 
 
 class RequestType(Enum):
@@ -107,6 +114,7 @@ class IncomingRequest:
     _headers: dict
     _timestamp: str
     _threat_level: Optional[int]
+    _request_id: Optional[int]
 
     def __init__(self, local_port: int):
         self._local_port = local_port
@@ -125,7 +133,7 @@ class IncomingRequest:
 
     def from_components(self, host: str, request_method: RequestType, request_headers: Optional[Dict[str, str]],
                         request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]],
-                        timestamp: str, threat_level: Optional[int] = None) -> Self:
+                        timestamp: str, threat_level: Optional[int] = None, request_id: Optional[int] = None) -> Self:
         self._host = RemoteHost(host)
         self._request_method = request_method
         self._request_headers = request_headers
@@ -134,7 +142,32 @@ class IncomingRequest:
         self._request_body = request_body
         self._timestamp = timestamp
         self._threat_level = threat_level
+        self._request_id = request_id
         return self
+
+    def determine_threat_level(self):
+        method_score, uri_score, query_score, body_score = 5, 5, 5, 5
+
+        if self._request_method in [RequestType.POST, RequestType.PUT]:
+            method_score = 10
+        elif self._request_method in [RequestType.DELETE, RequestType.PATCH, RequestType.PRI]:
+            method_score = 8
+        else:
+            method_score = 6
+        if self._request_uri in ["/", "/robots.txt"]:
+            self._threat_level = 1
+            return
+        elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FILES)):
+            self._threat_level = 10
+            return
+        else:
+            uri_score = 7
+        if self._query_string:
+            query_score = 10
+        if self._request_body:
+            body_score = 10
+
+        self._threat_level = int(round((method_score + uri_score + query_score + body_score) / 4, 0))
 
     @property
     def host(self) -> RemoteHost:
@@ -175,3 +208,7 @@ class IncomingRequest:
     @property
     def threat_level(self) -> Optional[int]:
         return self._threat_level
+
+    @property
+    def request_id(self) -> Optional[int]:
+        return self._request_id

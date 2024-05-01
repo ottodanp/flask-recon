@@ -13,6 +13,7 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Host</th>
+            <th scope="col">Threat Level</th>
             <th scope="col">Count</th>
             <th scope="col">Host Details</th>
             <th scope="col">Requests</th>
@@ -24,6 +25,7 @@
         <tr>
             <th scope="row">{{ loop.index }}</th>
             <td>{{ host.0.address }}</td>
+            <td>{{ host.0.threat_level }}</td>
             <td>{{ host.1 }}</td>
             <td>
                 <a href="/host?host={{ host.0.0 }}">
@@ -32,16 +34,16 @@
                     </button>
                 </a>
             <td>
-                <a href="/requests_by_host?host={{ host.0 }}&endpoint={{ endpoint }}">
+                <a href="/requests_by_host?host={{ host.0.address }}&endpoint={{ endpoint }}">
                     <button type="button" class="btn btn-primary">
-                        Requests from {{ host.0 }} to {{ endpoint }}
+                        Requests from {{ host.0.address }} to {{ endpoint }}
                     </button>
                 </a>
             </td>
             <td>
-                <a href="/requests_by_host?host={{ host.0 }}">
+                <a href="/requests_by_host?host={{ host.0.address }}">
                     <button type="button" class="btn btn-primary">
-                        Requests from {{ host.0 }}
+                        Requests from {{ host.0.address }}
                     </button>
                 </a>
             </td>

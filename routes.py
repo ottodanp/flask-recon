@@ -24,11 +24,11 @@ class ApiEndpoints:
 
     def requests_by_endpoint(self):
         endpoint = request.args.get("endpoint")
-        return self._listener.database_handler.get_requests_by_endpoint(endpoint)
+        return self._listener.database_handler.get_requests(endpoint)
 
     def requests_by_host(self):
         host = request.args.get("host")
-        return self._listener.database_handler.get_requests(RemoteHost(host))
+        return self._listener.database_handler.get_requests(host=RemoteHost(host))
 
     def host(self):
         host = request.args.get("host")
@@ -56,7 +56,7 @@ class WebApp:
     def html_requests_by_endpoint(self):
         endpoint = request.args.get("endpoint")
         return render_template("view_requests.html",
-                               requests=self._listener.database_handler.get_requests_by_endpoint(endpoint),
+                               requests=self._listener.database_handler.get_requests(endpoint=endpoint),
                                endpoint=endpoint, title=f"Requests to {endpoint}")
 
     def html_requests_by_host(self):
@@ -68,9 +68,9 @@ class WebApp:
         remote_host = RemoteHost(host)
 
         if endpoint is not None:
-            requests = self._listener.database_handler.get_requests_by_endpoint_and_host(endpoint, remote_host)
+            requests = self._listener.database_handler.get_requests(endpoint=endpoint, host=remote_host)
         else:
-            requests = self._listener.database_handler.get_requests(remote_host)
+            requests = self._listener.database_handler.get_requests(host=remote_host)
 
         return render_template("view_requests.html", requests=requests, title=f"Requests from {host}")
 

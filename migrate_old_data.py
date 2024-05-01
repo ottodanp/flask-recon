@@ -62,5 +62,21 @@ def migrate_new_data():
         new_db.add_request(request)
 
 
+def update_threat_levels():
+    new_db = DatabaseHandler(
+        dbname="new_flask_recon",
+        user="postgres",
+        password="postgres",
+        host="localhost",
+        port="5432"
+    )
+
+    requests = new_db.get_requests()
+    for request in requests:
+        request.determine_threat_level()
+        print(request.threat_level, request.request_id)
+        new_db.update_request_threat_level(request_id=request.request_id, threat_level=request.threat_level)
+
+
 if __name__ == '__main__':
-    migrate_new_data()
+    update_threat_levels()

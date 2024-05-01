@@ -1,2 +1,3 @@
-psycopg2
-flask
+psycopg2~=2.9.9
+flask~=2.3.3
+Werkzeug~=3.0.2
