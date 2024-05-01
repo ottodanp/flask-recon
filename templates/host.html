@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ host.address }}</title>
+    {% include 'head.html' %}
+</head>
+<body>
+{% include 'navbar.html' %}
+
+{{ host.threat_level }}
+
+<h2>Requests:</h2>
+
+{% include 'footer.html' %}
+</body>
+</html>

@@ -14,6 +14,7 @@
             <th scope="col">#</th>
             <th scope="col">Host</th>
             <th scope="col">Count</th>
+            <th scope="col">Host Details</th>
             <th scope="col">Requests</th>
             <th scope="col">Other Requests</th>
         </tr>
@@ -22,8 +23,14 @@
         {% for host in hosts %}
         <tr>
             <th scope="row">{{ loop.index }}</th>
-            <td>{{ host.0 }}</td>
+            <td>{{ host.0.address }}</td>
             <td>{{ host.1 }}</td>
+            <td>
+                <a href="/host?host={{ host.0.0 }}">
+                    <button type="button" class="btn btn-primary">
+                        Host Details
+                    </button>
+                </a>
             <td>
                 <a href="/requests_by_host?host={{ host.0 }}&endpoint={{ endpoint }}">
                     <button type="button" class="btn btn-primary">

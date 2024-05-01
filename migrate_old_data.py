@@ -6,47 +6,17 @@ from psycopg2 import connect
 from flask_recon import DatabaseHandler, IncomingRequest, RequestType
 
 
-class OldRequest:
-    _request_id: int
-    _request_method: str
-    _request_uri: str
-    _query_string: str
-    _request_headers: str
-    _request_body: str
-    _acceptable: bool
-    _remote_host_id: int
-    _port: int
-    _created_at: str
-
-    def __init__(self, request_id: int, request_method: str, request_uri: str, query_string: str, request_headers: str,
-                 request_body: str, acceptable: bool, remote_host_id: int, port: int, created_at: str):
-        self._request_id = request_id
-        self._request_method = request_method
-        self._request_uri = request_uri
-        self._query_string = query_string
-        self._request_headers = request_headers
-        self._request_body = request_body
-        self._acceptable = acceptable
-        self._remote_host_id = remote_host_id
-        self._port = port
-        self._created_at = created_at
-
-    def to_incoming_request(self, host: str) -> IncomingRequest:
-        return IncomingRequest(self._port).from_components(
-            request_method=RequestType[self._request_method],
-            request_uri=self._request_uri,
-            query_string=self._query_string,
-            request_headers=dict(loads(self._request_headers)),
-            request_body=dict(loads(self._request_body)),
-            host=host
-        )
-
-
 def get_all_requests(dbname: str, user: str, password: str, host: str, port: str) -> List[IncomingRequest]:
     """
-    request_id | method | uri | query_string | headers | body | acceptable | remote_host_id | port | created_at
+    request_id | actor_id | timestamp | method | path | body | headers | query_string | port | acceptable
+    :param dbname:
+    :param user:
+    :param password:
+    :param host:
+    :param port:
     :return:
     """
+
     connection = connect(
         dbname=dbname,
         user=user,
@@ -57,31 +27,40 @@ def get_all_requests(dbname: str, user: str, password: str, host: str, port: str
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM requests")
     rows = cursor.fetchall()
+    s = set()
     for row in rows:
-        remote_host_id = row[7]
-        cursor.execute("SELECT remote_host FROM remote_hosts WHERE remote_host_id = %s", (remote_host_id,))
+        cursor.execute("SELECT host FROM actors WHERE actor_id = %s", (row[1],))
         host = cursor.fetchone()[0]
-        yield OldRequest(*row).to_incoming_request(host)
+        f = f"{host}{row[3]}{row[4]}{row[6]}{row[7]}{row[5]}"
+        if f in s:
+            continue
+        s.add(f)
+        yield IncomingRequest(row[8]).from_components(
+            host=host,
+            request_method=RequestType[row[3]],
+            request_headers=loads(row[6]),
+            request_uri=row[4],
+            query_string=row[7],
+            request_body=loads(row[5]),
+            timestamp=row[2]
+        )
 
 
-def migrate_old_data():
+def migrate_new_data():
+    requests = get_all_requests(dbname="flask_recon", user="postgres", password="postgres", host="localhost",
+                                port="5432")
+
     new_db = DatabaseHandler(
-        dbname="flask_recon",
+        dbname="new_flask_recon",
         user="postgres",
         password="postgres",
         host="localhost",
         port="5432"
     )
-    requests = get_all_requests(
-        dbname="requests",
-        user="postgres",
-        password="postgres",
-        host="localhost",
-        port="5432"
-    )
+
     for request in requests:
         new_db.add_request(request)
 
 
-if __name__ == '__main__.py':
-    migrate_old_data()
+if __name__ == '__main__':
+    migrate_new_data()

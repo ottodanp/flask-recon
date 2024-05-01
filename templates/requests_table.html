@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Requests to {{ endpoint }}</title>
-    {% include 'head.html' %}
-</head>
-<body>
-{% include 'navbar.html' %}
-
 <div class="container d-flex justify-content-center mt-5">
     <table class="table table-striped">
         <thead>
@@ -28,7 +19,7 @@
         {% for request in requests %}
         <tr>
             <th scope="row">{{ loop.index }}</th>
-            <td>{{ request.host }}</td>
+            <td>{{ request.host.address }}</td>
             <td>{{ request.method }}</td>
             <td>{{ request.uri }}</td>
             <td>{{ request.query_string }}</td>
@@ -87,7 +78,3 @@
         </tbody>
     </table>
 </div>
-
-{% include 'footer.html' %}
-</body>
-</html>

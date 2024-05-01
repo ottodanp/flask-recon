@@ -30,6 +30,10 @@ class ApiEndpoints:
         host = request.args.get("host")
         return self._listener.database_handler.get_requests(RemoteHost(host))
 
+    def host(self):
+        host = request.args.get("host")
+        return self._listener.database_handler.get_host(RemoteHost(host))
+
 
 class WebApp:
     _listener: Listener
@@ -51,9 +55,9 @@ class WebApp:
 
     def html_requests_by_endpoint(self):
         endpoint = request.args.get("endpoint")
-        return render_template("requests_by_endpoint.html",
+        return render_template("view_requests.html",
                                requests=self._listener.database_handler.get_requests_by_endpoint(endpoint),
-                               endpoint=endpoint)
+                               endpoint=endpoint, title=f"Requests to {endpoint}")
 
     def html_requests_by_host(self):
         host = request.args.get("host")
@@ -68,7 +72,7 @@ class WebApp:
         else:
             requests = self._listener.database_handler.get_requests(remote_host)
 
-        return render_template("requests_by_host.html", requests=requests, host=host)
+        return render_template("view_requests.html", requests=requests, title=f"Requests from {host}")
 
     @staticmethod
     def home():

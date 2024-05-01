@@ -13,7 +13,7 @@ if __name__ == '__main__':
         port=80
     )
     listener.connect_database(
-        dbname="flask_recon",
+        dbname="new_flask_recon",
         user="postgres",
         password="postgres",
         host="localhost",

@@ -1,5 +1,5 @@
 from json import dumps, loads
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Tuple, Dict, Any, Union
 
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
@@ -11,7 +11,7 @@ class DatabaseHandler(cursor):
     _conn: connection
 
     def __init__(self, dbname: str, user: str, password: str, host: str, port: str):
-        self._conn = connect(dbname=dbname, user=user, password=password, host=host, port=port)
+        self._conn = connect(database=dbname, user=user, password=password, host=host, port=port)
         super().__init__(self._conn)
 
     def __del__(self):
@@ -85,21 +85,21 @@ class DatabaseHandler(cursor):
         self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND path = %s", (actor_id, endpoint))
         return self.fetchone()[0]
 
-    def get_hosts_by_endpoint(self, endpoint: str) -> List[Tuple[str, int]]:
+    def get_hosts_by_endpoint(self, endpoint: str) -> List[Tuple[Dict[str, Union[str, int]], int]]:
         self.execute("SELECT actor_id FROM requests WHERE path = %s", (endpoint,))
         actors = self.fetchall()
         e = set()
         r = []
         for row in actors:
-            self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
-            host = self.fetchone()[0]
+            self.execute("SELECT host, threat_level FROM actors WHERE actor_id = %s", (row[0],))
+            host, threat_level = self.fetchone()[0]
             if host in e:
                 continue
             e.add(host)
-            r.append((host, self.count_requests_from_actor(row[0], endpoint)))
+            r.append(({"address": host, "threat_level": threat_level}, self.count_requests_from_actor(row[0], endpoint)))
         return sorted(r, key=lambda x: x[1], reverse=True)
 
-    def get_requests_by_endpoint(self, endpoint: str) -> List[Dict[str, Any]]:
+    def get_requests_by_endpoint(self, endpoint: str) -> List[IncomingRequest]:
         self.execute(
             "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path FROM requests WHERE path = %s",
             (endpoint,))
@@ -107,62 +107,60 @@ class DatabaseHandler(cursor):
         r = []
         for row in requests:
             self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
-            host = self.fetchone()[0]
-            r.append({
-                "host": host,
-                "timestamp": row[1],
-                "method": row[2],
-                "body": loads(row[3]),
-                "headers": loads(row[4]),
-                "query_string": row[5],
-                "port": row[6],
-                "is_acceptable": row[7],
-                "uri": row[8]
-            })
-        return sorted(r, key=lambda x: x["timestamp"], reverse=True)
+            host = RemoteHost(self.fetchone()[0])
+            r.append(IncomingRequest(row[6]).from_components(
+                host=host.address,
+                timestamp=row[1],
+                request_method=row[2],
+                request_body=loads(row[3]),
+                request_headers=loads(row[4]),
+                query_string=row[5],
+                request_uri=row[8],
+            ))
+        return sorted(r, key=lambda x: x.timestamp, reverse=True)
 
-    def get_requests_by_endpoint_and_host(self, endpoint: str, host: RemoteHost) -> List[Dict[str, Any]]:
+    def get_requests_by_endpoint_and_host(self, endpoint: str, host: RemoteHost) -> List[IncomingRequest]:
         self.execute(
             "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path FROM requests WHERE path = %s AND actor_id = %s",
             (endpoint, self.get_actor_id(host)))
         requests = self.fetchall()
         r = []
         for row in requests:
-            r.append({
-                "host": host.address,
-                "timestamp": row[1],
-                "method": row[2],
-                "body": loads(row[3]),
-                "headers": loads(row[4]),
-                "query_string": row[5],
-                "port": row[6],
-                "is_acceptable": row[7],
-                "uri": row[8]
-            })
-        return sorted(r, key=lambda x: x["timestamp"], reverse=True)
+            r.append(IncomingRequest(row[6]).from_components(
+                host=host.address,
+                timestamp=row[1],
+                request_method=row[2],
+                request_body=loads(row[3]),
+                request_headers=loads(row[4]),
+                query_string=row[5],
+                request_uri=row[8],
+            ))
+        return sorted(r, key=lambda x: x.timestamp, reverse=True)
 
-    def get_remote_hosts(self) -> List[Tuple[str, int, int, int]]:
-        self.execute("SELECT host FROM actors")
+    def get_remote_hosts(self) -> List[Tuple[str, int, int, int, int]]:
+        self.execute("SELECT host, threat_level FROM actors")
         r = []
         for row in self.fetchall():
             host = RemoteHost(row[0])
+            threat_level = row[1]
             valid, invalid = self.count_requests(host)
             total = valid + invalid
-            r.append((host.address, valid, invalid, total))
+            r.append((host.address, valid, invalid, total, threat_level))
         return sorted(r, key=lambda x: x[3], reverse=True)
 
     def get_requests(self, host: RemoteHost) -> List[IncomingRequest]:
         self.execute(
-            "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path FROM requests WHERE actor_id = %s",
+            "SELECT actor_id, timestamp, method, body, headers, query_string, port, path FROM requests WHERE actor_id = %s",
             (self.get_actor_id(host),))
         r = []
         for row in self.fetchall():
             r.append(IncomingRequest(row[6]).from_components(
-                host=row[0],
+                host=host.address,
+                timestamp=row[1],
                 request_method=row[2],
+                request_body=loads(row[3]),
                 request_headers=loads(row[4]),
-                request_uri=row[8],
                 query_string=row[5],
-                request_body=loads(row[3])
+                request_uri=row[7],
             ))
         return sorted(r, key=lambda x: x.timestamp, reverse=True)

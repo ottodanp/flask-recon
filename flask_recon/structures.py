@@ -1,4 +1,3 @@
-from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Self
 
@@ -107,10 +106,10 @@ class IncomingRequest:
     _is_acceptable: bool
     _headers: dict
     _timestamp: str
+    _threat_level: Optional[int]
 
     def __init__(self, local_port: int):
         self._local_port = local_port
-        self._timestamp = datetime.now().isoformat()
 
     def from_request(self, request: Request) -> Self:
         self._host = RemoteHost(request.remote_addr)
@@ -125,13 +124,16 @@ class IncomingRequest:
         return self
 
     def from_components(self, host: str, request_method: RequestType, request_headers: Optional[Dict[str, str]],
-                        request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]]) -> Self:
+                        request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]],
+                        timestamp: str, threat_level: Optional[int] = None) -> Self:
         self._host = RemoteHost(host)
         self._request_method = request_method
         self._request_headers = request_headers
         self._request_uri = request_uri
         self._query_string = query_string
         self._request_body = request_body
+        self._timestamp = timestamp
+        self._threat_level = threat_level
         return self
 
     @property
@@ -169,3 +171,7 @@ class IncomingRequest:
     @property
     def timestamp(self) -> str:
         return self._timestamp
+
+    @property
+    def threat_level(self) -> Optional[int]:
+        return self._threat_level

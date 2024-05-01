@@ -47,7 +47,8 @@ class Listener:
             request_headers=headers,
             request_uri=uri,
             query_string=query_string,
-            request_body=body
+            request_body=body,
+            timestamp="",
         )
         self._database_handler.add_request(req)
         if req.is_acceptable:
