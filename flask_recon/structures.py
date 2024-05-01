@@ -11,6 +11,8 @@ KNOWN_PAYLOAD_FLAGS = {
     "admin": 9,
     "wp-": 8,
     ".env": 10,
+    "cgi-": 8,
+    "bin": 9,
     "config": 9,
     "settings": 9,
     "database": 9,
@@ -35,6 +37,8 @@ KNOWN_PAYLOAD_FLAGS = {
     "777": 10,
     "cd /": 10,
     "rm -rf": 10,
+    "$(": 10,
+
 }
 MALICIOUS_UA_FLAGS = {
     "sqlmap": 10,
@@ -190,14 +194,11 @@ class IncomingRequest:
         return self
 
     def determine_threat_level(self):
-        method_score, uri_score, query_score, body_score, ua_score = 5, 5, 5, 5, 5
+        method_score, uri_score, query_score, body_score, ua_score = 5, 4, 5, 0, 5
 
-        if self._request_headers:
-            if "user-agent" in [k.lower() for k in self._request_headers.keys()]:
-                ua = self._request_headers.get("user-agent") or self._request_headers.get("User-Agent")
-                ua_score = self.calc_avg_tl_str(ua, MALICIOUS_UA_FLAGS)
-            else:
-                ua_score = 10
+        if self._request_headers and "user-agent" in [k.lower() for k in self._request_headers.keys()]:
+            ua = self._request_headers.get("user-agent") or self._request_headers.get("User-Agent")
+            ua_score = self.calc_avg_tl_str(ua, MALICIOUS_UA_FLAGS)
 
         if self._request_method in [RequestType.POST, RequestType.PUT]:
             method_score = 10
@@ -207,7 +208,7 @@ class IncomingRequest:
             method_score = 6
 
         if self._request_uri == "/":
-            uri_score = 1
+            uri_score = 0
         elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FLAGS.keys())):
             uri_score = self.calc_avg_tl_str(self._request_uri, KNOWN_PAYLOAD_FLAGS)
         else:
