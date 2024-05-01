@@ -3,8 +3,7 @@ from typing import List
 
 from psycopg2 import connect
 
-from flask_recon.database import DatabaseHandler
-from flask_recon.structures import IncomingRequest, RequestType
+from flask_recon import DatabaseHandler, IncomingRequest, RequestType
 
 
 class OldRequest:
@@ -84,5 +83,5 @@ def migrate_old_data():
         new_db.add_request(request)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__.py':
     migrate_old_data()

@@ -50,8 +50,7 @@ python -m flask_recon <port> [api|noapi] [webapp|nowebapp]
 ```python
 from flask import Flask, request
 
-from flask_recon.server import Listener
-from flask_recon.structures import RemoteHost
+from flask_recon import Listener, RemoteHost
 
 app = Flask(__name__)
 listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
@@ -78,7 +77,7 @@ def search_hosts():
     return listener.database_handler.get_remote_hosts(), 200
 
 
-if __name__ == '__main__':
+if __name__ == '__main__.py':
     listener.run()
 
 ```
@@ -100,7 +99,7 @@ def index() -> str:
 
 # Any other existing routes
 
-if __name__ == '__main__':
+if __name__ == '__main__.py':
     app.run(host="0.0.0.0", port=80)
 ```
 
@@ -109,7 +108,7 @@ if __name__ == '__main__':
 ```python
 from flask import Flask
 
-from flask_recon.server import Listener
+from flask_recon import Listener
 
 app = Flask(__name__)
 
@@ -121,7 +120,7 @@ def index() -> str:
 
 # Any other existing routes
 
-if __name__ == '__main__':
+if __name__ == '__main__.py':
     listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
     listener.connect_database(
         dbname="flask_recon",

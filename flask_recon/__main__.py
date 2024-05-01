@@ -6,6 +6,13 @@ from flask_recon import Listener
 from routes import add_routes
 
 if __name__ == '__main__':
+    if len(argv) != 4:
+        print("Usage: python main.py <port> [api|noapi] [webapp|nowebapp]")
+        exit(1)
+    port, run_api, run_webapp = argv[1:]
+    if run_webapp == "webapp":
+        input("templates must be found in /templates. Press enter to continue.")
+
     listener = Listener(
         flask=Flask(__name__),
         halt_scanner_threads=True,
@@ -19,9 +26,9 @@ if __name__ == '__main__':
         host="localhost",
         port="5432"
     )
-    add_routes(listener)
-    if len(argv) != 3:
-        print("Usage: python main.py <port> [ssl|nossl]")
-        exit(1)
-
-    listener.run(host="0.0.0.0", port=int(argv[1]), ssl_context=("cert.pem", "key.pem",) if argv[2] == "ssl" else None)
+    add_routes(
+        listener=listener,
+        run_api=run_api == "api",
+        run_webapp=run_webapp == "webapp"
+    )
+    listener.run(host="0.0.0.0", port=80)
