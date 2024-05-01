@@ -63,9 +63,9 @@ class DatabaseHandler(cursor):
 
     def count_requests(self, host: RemoteHost) -> Tuple[int, int]:
         actor_id = self.get_actor_id(host)
-        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = TRUE",(actor_id,))
+        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = TRUE", (actor_id,))
         valid = self.fetchone()[0]
-        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = FALSE",(actor_id,))
+        self.execute("SELECT COUNT(*) FROM requests WHERE actor_id = %s AND acceptable = FALSE", (actor_id,))
         invalid = self.fetchone()[0]
         return valid, invalid
 

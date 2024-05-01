@@ -1,9 +1,9 @@
+from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Self
 
 import werkzeug.exceptions
 from flask import Request
-from datetime import datetime
 
 HALT_PAYLOAD = "STOP SCANNING"
 
@@ -169,4 +169,3 @@ class IncomingRequest:
     @property
     def timestamp(self) -> str:
         return self._timestamp
-

@@ -1,8 +1,9 @@
+from sys import argv
+
 from flask import Flask
 
 from flask_recon.server import Listener
 from routes import add_routes
-from sys import argv
 
 if __name__ == '__main__':
     listener = Listener(
