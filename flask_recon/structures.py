@@ -152,7 +152,7 @@ class IncomingRequest:
 
         if self._request_headers:
             if "user-agent" in [k.lower() for k in self._request_headers.keys()]:
-                ua = self._request_headers.get("user-agent") or self._headers.get("User-Agent")
+                ua = self._request_headers.get("user-agent") or self._request_headers.get("User-Agent")
                 if any(map(ua.__contains__, MALICIOUS_UA_FLAGS)):
                     self._threat_level = 10
                     return
