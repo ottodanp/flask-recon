@@ -1,7 +1,7 @@
 from typing import Tuple, Dict, Optional
 
 from flask import Flask, request, Response
-from time import perf_counter
+from time import perf_counter, sleep
 
 from flask_recon.database import DatabaseHandler
 from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
@@ -44,11 +44,7 @@ class Listener:
         )
 
     def error_handler(self, _):
-        s = perf_counter()
-        result = self.handle_request(*self.unpack_request_values(request))
-        f = perf_counter()
-        print(f"Request took {f - s} seconds to process")
-        return result
+        return self.handle_request(*self.unpack_request_values(request))
 
     def handle_request(self, headers: Dict[str, str], method: str, remote_address: str, uri: str, query_string: str,
                        body: Dict[str, str]):
@@ -74,6 +70,7 @@ class Listener:
         if self._halt_scanner_threads:
             for _ in range(self._max_halt_messages):
                 yield (HALT_PAYLOAD * 1024) * 1024
+                sleep(1)
             return "", 200
 
         return "404 Not Found", 404
