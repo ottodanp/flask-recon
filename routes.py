@@ -73,6 +73,24 @@ class WebApp:
 
         return render_template("view_requests.html", requests=requests, title=f"Requests from {host}")
 
+    def html_search(self):
+        if any([
+            (host := request.args.get("input_host")),
+            (actor := request.args.get("input_actor")),
+            (method := request.args.get("input_method")),
+            (uri := request.args.get("input_uri")),
+            (headers := request.args.get("input_headers")),
+            (query_string := request.args.get("input_query_string")),
+            (body := request.args.get("input_body"))
+        ]):
+            case_sensitive = request.args.get("case_sensitive") == "on"
+            all_must_match = request.args.get("all_must_match") == "on"
+            results = self._listener.database_handler.search(actor=actor, method=method, all_must_match=all_must_match,
+                                                             uri=uri, host=host, query_string=query_string, body=body,
+                                                             case_sensitive=case_sensitive, headers=headers)
+            return render_template( "search.html", requests=results)
+        return render_template("search.html")
+
     def home(self):
         last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
         last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
@@ -111,4 +129,5 @@ def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True
         listener.route("/requests_by_endpoint")(webapp.html_requests_by_endpoint)
         listener.route("/requests_by_host")(webapp.html_requests_by_host)
         listener.route("/home")(webapp.home)
+        listener.route("/search")(webapp.html_search)
         listener.route("/favicon.ico")(webapp.favicon)

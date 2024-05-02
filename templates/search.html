@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Search</title>
+    {% include 'head.html' %}
+</head>
+<body>
+{% include 'navbar.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <form action="/search" method="get">
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Search By</label>
+                    <div class="col-sm-10">
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_host">Host</label>
+                            <input type="text" class="form-control" id="input_host" name="input_host">
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_method">Method</label>
+                            <input type="text" class="form-control" id="input_method" name="input_method">
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_uri">URI</label>
+                            <input type="text" class="form-control" id="input_uri" name="input_uri">
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_query_string">Query String</label>
+                            <input type="text" class="form-control" id="input_query_string" name="input_query_string">
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_headers">Headers</label>
+                            <input type="text" class="form-control" id="input_headers" name="input_headers">
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="input_body">Body</label>
+                            <input type="text" class="form-control" id="input_body" name="input_body">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="case-sensitive" class="col-sm-2 col-form-label">Case Sensitive</label>
+                    <div class="col-sm-10">
+                        <input type="checkbox" class="form-check-input" id="case-sensitive" name="case_sensitive">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="all-must-match" class="col-sm-2 col-form-label">All Must Match</label>
+                    <div class="col-sm-10">
+                        <input type="checkbox" class="form-check-input" id="all-must-match" name="all_must_match">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-10 offset-sm-2">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Results</h2>
+            {% include 'request_table.html' %}
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+</body>
+</html>

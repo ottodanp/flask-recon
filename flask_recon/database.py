@@ -187,6 +187,78 @@ class DatabaseHandler(cursor):
         self.execute("SELECT body FROM connect_targets WHERE url = %s", (url,))
         return self.fetchone()[0]
 
+    def search(
+            self,
+            actor: Optional[str] = None,
+            uri: Optional[str] = None,
+            method: Optional[str] = None,
+            threat_level: Optional[int] = None,
+            acceptable: Optional[bool] = None,
+            host: Optional[str] = None,
+            headers: Optional[str] = None,
+            query_string: Optional[str] = None,
+            body: Optional[str] = None,
+            all_must_match: bool = False,
+            case_sensitive: bool = False,
+    ) -> List[IncomingRequest]:
+        query = "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path, request_id FROM requests"
+        conditions = []
+        variables = []
+        if actor:
+            conditions.append(
+                f"actor_id IN (SELECT actor_id FROM actors WHERE host {'LIKE' if not case_sensitive else 'ILIKE'} %s)")
+            variables.append(actor)
+        if uri:
+            conditions.append(f"path {'LIKE' if case_sensitive else 'ILIKE'} %s")
+            variables.append(f"%{uri}%")
+        if method:
+            conditions.append(f"method {'LIKE' if case_sensitive else 'ILIKE'} %s")
+            variables.append(f"%{method}%")
+        if threat_level:
+            conditions.append("threat_level = %s")
+            variables.append(threat_level)
+        if acceptable is not None:
+            conditions.append("acceptable = %s")
+            variables.append(acceptable)
+        if host:
+            conditions.append(
+                f"actor_id IN (SELECT actor_id FROM actors WHERE host {'LIKE' if not case_sensitive else 'ILIKE'} %s)")
+            variables.append(f"%{host}%")
+        if headers:
+            conditions.append(f"headers {'LIKE' if case_sensitive else 'ILIKE'} %s")
+            variables.append(f"%{headers}%")
+        if query_string:
+            conditions.append(f"query_string {'LIKE' if case_sensitive else 'ILIKE'} %s")
+            variables.append(f"%{query_string}%")
+        if body:
+            conditions.append(f"body {'LIKE' if case_sensitive else 'ILIKE'} %s")
+            variables.append(f"%{body}%")
+
+        if conditions:
+            separator = " AND " if all_must_match else " OR "
+            query += " WHERE " + separator.join(conditions)
+
+        self.execute(query, variables)
+        requests = self.fetchall()
+        r = []
+        for row in requests:
+            self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
+            host = RemoteHost(self.fetchone()[0])
+            incoming_request = IncomingRequest(row[6]).from_components(
+                host=host.address,
+                timestamp=row[1],
+                request_method=row[2],
+                request_body=loads(row[3]),
+                request_headers=loads(row[4]),
+                query_string=row[5],
+                request_uri=row[8],
+                request_id=row[-1],
+                threat_level=row[7],
+            )
+            incoming_request.determine_threat_level()
+            r.append(incoming_request)
+        return sorted(r, key=lambda x: x.timestamp, reverse=True)
+
     # stats
     def get_request_count(self) -> int:
         self.execute("SELECT COUNT(request_id) FROM requests")
