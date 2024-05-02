@@ -1,5 +1,5 @@
 from json import dumps, loads
-from typing import Optional, List, Tuple, Dict, Union
+from typing import Optional, List, Tuple, Dict, Union, Any
 
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
@@ -39,7 +39,7 @@ class DatabaseHandler(cursor):
         self.execute("UPDATE requests SET threat_level = %s WHERE request_id = %s", (threat_level, request_id))
         self._conn.commit()
 
-    def update_actor_threat_level(self, actor_id: int):
+    def update_actor_threat_level(self, actor_id: int) -> None:
         threat_level = self.get_actor_average_threat_level(actor_id)
         self.execute("UPDATE actors SET threat_level = %s WHERE actor_id = %s", (threat_level, actor_id))
         self._conn.commit()
@@ -48,7 +48,7 @@ class DatabaseHandler(cursor):
         self.execute("SELECT flagged FROM actors WHERE host = %s", (remote_host.address,))
         return self.fetchone()[0]
 
-    def insert_request(self, request: IncomingRequest):
+    def insert_request(self, request: IncomingRequest) -> None:
         if not self.actor_exists(request.host):
             self.insert_actor(request.host)
 
@@ -69,7 +69,14 @@ class DatabaseHandler(cursor):
         self.execute("SELECT dummy_contents FROM honeypots WHERE file_name = %s", (file,))
         return self.fetchone()[0] if self.rowcount > 0 else None
 
-    def add_honeypot(self, file: str, contents: str) -> None:
+    def honeypot_exists(self, file: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT honeypot_id FROM honeypots WHERE file_name = %s)", (file,))
+        return self.fetchone()[0]
+
+    def insert_honeypot(self, file: str, contents: str) -> None:
+        if self.honeypot_exists(file):
+            return
+
         self.execute("INSERT INTO honeypots (file_name, dummy_contents) VALUES (%s, %s)", (file, contents))
         self._conn.commit()
 
@@ -164,3 +171,56 @@ class DatabaseHandler(cursor):
             incoming_request.determine_threat_level()
             r.append(incoming_request)
         return sorted(r, key=lambda x: x.timestamp, reverse=True)
+
+    def connect_target_exists(self, url: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT connect_target_id FROM connect_targets WHERE url = %s)", (url,))
+        return self.fetchone()[0]
+
+    def insert_connect_target(self, url: str, body: str) -> None:
+        if self.connect_target_exists(url):
+            return
+
+        self.execute("INSERT INTO connect_targets (url, body) VALUES (%s, %s)", (url, body))
+        self._conn.commit()
+
+    def get_connect_target(self, url: str) -> str:
+        self.execute("SELECT body FROM connect_targets WHERE url = %s", (url,))
+        return self.fetchone()[0]
+
+    # stats
+    def get_request_count(self) -> int:
+        self.execute("SELECT COUNT(request_id) FROM requests")
+        return self.fetchone()[0]
+
+    def get_actor_count(self) -> int:
+        self.execute("SELECT COUNT(actor_id) FROM actors")
+        return self.fetchone()[0]
+
+    def get_endpoint_count(self) -> int:
+        self.execute("SELECT COUNT(DISTINCT path) FROM requests")
+        return self.fetchone()[0]
+
+    def get_last_request_time(self) -> str:
+        self.execute("SELECT timestamp FROM requests ORDER BY timestamp DESC LIMIT 1")
+        return self.fetchone()[0]
+
+    def get_last_actor(self) -> Tuple[str, str]:
+        self.execute("SELECT actor_id, host FROM actors ORDER BY actor_id DESC LIMIT 1")
+        actor_id, host = self.fetchone()
+        self.execute("SELECT timestamp FROM requests WHERE actor_id = %s ORDER BY timestamp DESC LIMIT 1", (actor_id,))
+        return host, self.fetchone()[0]
+
+    def get_last_endpoint(self) -> Tuple[Any, ...]:
+        self.execute("""
+            SELECT "requests"."method", "unique_paths"."path", "requests"."threat_level"
+            FROM (
+                SELECT "path", COUNT(*) AS "count"
+                FROM "requests"
+                GROUP BY "path"
+                HAVING COUNT(*) = 1
+            ) AS unique_paths
+            JOIN "requests" ON "unique_paths"."path" = "requests"."path"
+            ORDER BY "requests"."request_id" DESC
+            LIMIT 1;
+        """)
+        return self.fetchone()

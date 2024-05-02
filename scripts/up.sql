@@ -55,3 +55,10 @@ CREATE TABLE IF NOT EXISTS "analysed_actors"
     "notes"       TEXT,
     FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
 );
+
+CREATE TABLE IF NOT EXISTS "connect_targets"
+(
+    "target_id" SERIAL PRIMARY KEY,
+    "url"       VARCHAR(255) NOT NULL,
+    "body"      TEXT
+);

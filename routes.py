@@ -73,9 +73,21 @@ class WebApp:
 
         return render_template("view_requests.html", requests=requests, title=f"Requests from {host}")
 
-    @staticmethod
-    def home():
-        return render_template("home.html")
+    def home(self):
+        last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
+        last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
+        return render_template(
+            "home.html",
+            total_requests=self._listener.database_handler.get_request_count(),
+            total_endpoints=self._listener.database_handler.get_endpoint_count(),
+            total_actors=self._listener.database_handler.get_actor_count(),
+            last_request_time=self._listener.database_handler.get_last_request_time(),
+            last_endpoint=last_endpoint,
+            last_actor_time=last_actor_time,
+            last_request_method=last_method,
+            last_threat_level=last_threat_level,
+            last_actor=last_actor
+        )
 
     @staticmethod
     def favicon():

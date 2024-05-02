@@ -4,6 +4,7 @@ from typing import List
 from psycopg2 import connect
 
 from flask_recon import DatabaseHandler, IncomingRequest, RequestType
+from os import listdir
 
 
 def get_all_requests(dbname: str, user: str, password: str, host: str, port: str) -> List[IncomingRequest]:
@@ -77,5 +78,19 @@ def update_threat_levels():
         new_db.update_request_threat_level(request_id=request.request_id, threat_level=request.threat_level)
 
 
+def add_honeypots():
+    new_db = DatabaseHandler(
+        dbname="new_flask_recon",
+        user="postgres",
+        password="postgres",
+        host="localhost",
+        port="5432"
+    )
+
+    for file in listdir("honey_pot"):
+        with open(f"honey_pot/{file}", "r") as f:
+            new_db.insert_honeypot(file, f.read())
+
+
 if __name__ == '__main__':
-    update_threat_levels()
+    add_honeypots()

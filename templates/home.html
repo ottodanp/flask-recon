@@ -7,6 +7,92 @@
 <body>
 {% include 'navbar.html' %}
 
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header">Total Requests</div>
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{ total_requests }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header">Total Endpoints</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ total_endpoints }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header">Total Actors</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ total_actors }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Request Received</div>
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{ last_request_time }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Unique Request Threat Level</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ last_threat_level }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Unique Actor Visited</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ last_actor_time }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Unique Request Method</div>
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{ last_request_method }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Endpoint Discovered</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ last_endpoint }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+                <div class="card-header">Last Unique Actor</div>
+                <div class="card-body">
+                    <h5 class="card-title
+                    text-center">{{ last_actor }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% include 'footer.html' %}
 </body>

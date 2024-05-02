@@ -1,9 +1,16 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 
 from flask import Flask, request, Response
+from time import perf_counter
 
 from flask_recon.database import DatabaseHandler
 from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
+from flask_recon.honeypot import get_connect_target
+
+PORTS = {
+    "80": "http",
+    "443": "https"
+}
 
 
 class Listener:
@@ -37,7 +44,11 @@ class Listener:
         )
 
     def error_handler(self, _):
-        return self.handle_request(*self.unpack_request_values(request))
+        s = perf_counter()
+        result = self.handle_request(*self.unpack_request_values(request))
+        f = perf_counter()
+        print(f"Request took {f - s} seconds to process")
+        return result
 
     def handle_request(self, headers: Dict[str, str], method: str, remote_address: str, uri: str, query_string: str,
                        body: Dict[str, str]):
@@ -66,6 +77,37 @@ class Listener:
             return "", 200
 
         return "404 Not Found", 404
+
+    def handle_connect(self, req: IncomingRequest):
+        target = req.uri
+        if (connect_target := self.process_connect_target(target)) is None:
+            return "400 Bad Request", 400
+
+        if self._database_handler.connect_target_exists(connect_target):
+            return self._database_handler.get_connect_target(connect_target), 200
+
+        if (response := get_connect_target(connect_target)) is None:
+            return "400 Bad Request", 400
+
+    @staticmethod
+    def process_connect_target(target: str) -> Optional[str]:
+        if target.startswith("/"):
+            target = target.lstrip("/")
+
+        if "://" in target:
+            return target
+
+        if ":" not in target:
+            return
+
+        try:
+            host, port = target.split(":")
+            int(port)
+            if (method := PORTS.get(port)) is not None:
+                return f"{method}://{host}:{port}"
+
+        except ValueError:
+            return None
 
     @staticmethod
     def unpack_request_values(req: request) -> Tuple[Dict[str, str], str, str, str, str, Dict[str, str]]:
