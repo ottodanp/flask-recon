@@ -1,11 +1,11 @@
+from time import sleep
 from typing import Tuple, Dict, Optional
 
 from flask import Flask, request, Response
-from time import perf_counter, sleep
 
 from flask_recon.database import DatabaseHandler
-from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
 from flask_recon.honeypot import get_connect_target
+from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
 
 PORTS = {
     "80": "http",
