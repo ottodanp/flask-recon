@@ -39,18 +39,18 @@
     <div class="row">
         <div class="col-md-4">
             <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
-                <div class="card-header">Last Request Received</div>
+                <div class="card-header">Time Since Last Request</div>
                 <div class="card-body">
-                    <h5 class="card-title text-center">{{ last_request_time }}</h5>
+                    <h5 class="card-title text-center">{{ time_since_last_request }}</h5>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
-                <div class="card-header">Last Unique Request Threat Level</div>
+                <div class="card-header">Average Time Between Requests</div>
                 <div class="card-body">
                     <h5 class="card-title
-                    text-center">{{ last_threat_level }}</h5>
+                    text-center">{{ time_between_requests }}</h5>
                 </div>
             </div>
         </div>

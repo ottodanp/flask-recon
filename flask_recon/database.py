@@ -296,3 +296,21 @@ class DatabaseHandler(cursor):
             LIMIT 1;
         """)
         return self.fetchone()
+
+    def get_average_time_between_requests(self) -> float:
+        self.execute("""
+            SELECT AVG("time_diff")
+            FROM (
+                SELECT "timestamp" - LAG("timestamp", 1) OVER (ORDER BY "timestamp") AS "time_diff"
+                FROM "requests"
+            ) AS "time_diffs"
+            WHERE "time_diff" IS NOT NULL;
+        """)
+        return self.fetchone()[0]
+
+    def get_time_since_last_request(self) -> str:
+        self.execute("""
+            SELECT NOW() - MAX("timestamp")
+            FROM "requests";
+        """)
+        return self.fetchone()[0]

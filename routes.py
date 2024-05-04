@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template
 
 from flask_recon import Listener, RemoteHost
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -94,18 +95,26 @@ class WebApp:
     def home(self):
         last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
         last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
+        time_between_requests = self._listener.database_handler.get_average_time_between_requests()
+        last_request_time = self._listener.database_handler.get_last_request_time()
+        time_since_last_request = datetime.now() - last_request_time
         return render_template(
             "home.html",
             total_requests=self._listener.database_handler.get_request_count(),
             total_endpoints=self._listener.database_handler.get_endpoint_count(),
             total_actors=self._listener.database_handler.get_actor_count(),
-            last_request_time=self._listener.database_handler.get_last_request_time(),
+            time_since_last_request=self.parse_time(str(time_since_last_request)),
             last_endpoint=last_endpoint,
             last_actor_time=last_actor_time,
             last_request_method=last_method,
-            last_threat_level=last_threat_level,
+            time_between_requests=self.parse_time(str(time_between_requests)),
             last_actor=last_actor
         )
+
+    @staticmethod
+    def parse_time(t: str) -> str:
+        h, m, s = t.split(":")
+        return f"{h}h {m}m {float(s):.2f}s"
 
     @staticmethod
     def favicon():
