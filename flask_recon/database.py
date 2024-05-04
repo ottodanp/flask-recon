@@ -1,3 +1,4 @@
+from datetime import datetime
 from json import dumps, loads
 from typing import Optional, List, Tuple, Dict, Union, Any
 
@@ -272,7 +273,7 @@ class DatabaseHandler(cursor):
         self.execute("SELECT COUNT(DISTINCT path) FROM requests")
         return self.fetchone()[0]
 
-    def get_last_request_time(self) -> str:
+    def get_last_request_time(self) -> datetime:
         self.execute("SELECT timestamp FROM requests ORDER BY timestamp DESC LIMIT 1")
         return self.fetchone()[0]
 

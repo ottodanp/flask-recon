@@ -1,14 +1,15 @@
-# Python Passive Honeypot
+# Python Flask Recon
 
-### A simple passive honeypot written in Python with Flask and psycopg2.
+### A simple passive recon webapp written in Python with Flask and psycopg2.
 
 ### Aims:
 
-- Provide a simple passive honeypot that can be used to detect and log malicious activity on a network.
+- Provide a simple passive reconnaissance package that can be used to detect and log malicious activity targeted to a
+  Flask webapp.
 - Gather information about the attacker and the attack.
-- Gather currently active attack vectors used en-masse by attackers.
-- Optionally provide a way to hang a thread of an attacker's scanner to slow down their scans. (If the attacker is not
-  using any kind of concurrency, their whole scan will be halted.)
+- Gather currently active attack vectors used en-masse by bad actors.
+- Optionally provide a way to persistantly occupy a thread of an attacker's scanner to slow down their scans.
+  (The entire scan will be halted if the actor is not using any form of multithreading.)
 - Return convincing dummy response bodies to maintain bot engagement and encourage further scanning, ideally ultimately
   leading to a full attack dump.
 - Provide a simple way to view the logs and analyse the data.
@@ -45,14 +46,16 @@ Windows:
 python -m flask_recon <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]
 ```
 
+Please note that the specified port must be open and available for the webapp to listen on.
+
 ### As part of another Flask application:
 
-#### Building an API around the honeypot:
+#### Building an API around the extension:
 
 ```python
 from flask import Flask, request
 
-from flask_recon import Listener, RemoteHost
+from flask_recon import Listener
 
 app = Flask(__name__)
 listener = Listener(flask=app, halt_scanner_threads=True, max_halt_messages=100_000, port=80)
@@ -84,7 +87,7 @@ if __name__ == '__main__.py':
 
 ```
 
-#### Seamlessly integrating the honeypot into an existing Flask application:
+#### Seamlessly integrating the extension into an existing Flask application:
 
 ###### Before:
 

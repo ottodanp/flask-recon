@@ -1,7 +1,8 @@
+from datetime import datetime
+
 from flask import Flask, request, render_template
 
 from flask_recon import Listener, RemoteHost
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -29,10 +30,6 @@ class ApiEndpoints:
     def requests_by_host(self):
         host = request.args.get("host")
         return self._listener.database_handler.get_requests(host=RemoteHost(host))
-
-    def host(self):
-        host = request.args.get("host")
-        return self._listener.database_handler.get_host(RemoteHost(host))
 
 
 class WebApp:
@@ -89,7 +86,7 @@ class WebApp:
             results = self._listener.database_handler.search(actor=actor, method=method, all_must_match=all_must_match,
                                                              uri=uri, host=host, query_string=query_string, body=body,
                                                              case_sensitive=case_sensitive, headers=headers)
-            return render_template( "search.html", requests=results)
+            return render_template("search.html", requests=results)
         return render_template("search.html")
 
     def home(self):
