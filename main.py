@@ -8,7 +8,7 @@ from routes import add_routes
 if __name__ == '__main__':
     listener = Listener(
         flask=Flask(__name__),
-        halt_scanner_threads=True,
+        halt_scanner_threads=False,
         max_halt_messages=100_000,
         port=80
     )

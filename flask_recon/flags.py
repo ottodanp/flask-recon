@@ -40,6 +40,7 @@ class RequestType(Enum):
     RECON = "RECON"
     ATTACK = "ATTACK"
     GRAB = "GRAB"
+    PROXY_ATTEMPT = "PROXY_ATTEMPT"
     OTHER = "OTHER"
 
     @staticmethod
@@ -52,6 +53,8 @@ class RequestType(Enum):
             return RequestType.ATTACK
         if request_type == "GRAB":
             return RequestType.GRAB
+        if request_type == "PROXY_ATTEMPT":
+            return RequestType.PROXY_ATTEMPT
         return RequestType.OTHER
 
 

@@ -73,16 +73,9 @@
             <td>{{ request.local_port }}</td>
             <td>
                 <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Request Type</th>
-                    </tr>
-                    </thead>
                     <tbody>
                     {% for request_type in request.request_types %}
                     <tr>
-                        <th scope="row">{{ loop.index }}</th>
                         <td>{{ request_type.value }}</td>
                     </tr>
                     {% endfor %}
@@ -91,16 +84,9 @@
             </td>
             <td>
                 <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Attack Type</th>
-                    </tr>
-                    </thead>
                     <tbody>
                     {% for attack_type in request.attack_types %}
                     <tr>
-                        <th scope="row">{{ loop.index }}</th>
                         <td>{{ attack_type.value }}</td>
                     </tr>
                     {% endfor %}
@@ -108,14 +94,14 @@
                 </table>
             </td>
             <td>
-                <a href="/requests_by_host?host={{ request.host.address }}">
+                <a href="/logger_panel/requests_by_host?host={{ request.host.address }}">
                     <button type="button" class="btn btn-primary">
                         Actor Requests
                     </button>
                 </a>
             </td>
             <td>
-                <a href="/csv_dump?request_id={{ request.request_id }}">
+                <a href="/logger_panel/csv_dump?request_id={{ request.request_id }}">
                     <button type="button" class="btn btn-primary">
                         CSV Dump
                     </button>

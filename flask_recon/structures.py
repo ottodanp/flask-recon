@@ -126,6 +126,8 @@ class IncomingRequest:
             method_score = 10
         elif self._request_method in [RequestMethod.DELETE, RequestMethod.PATCH, RequestMethod.PRI]:
             method_score = 8
+        elif self._request_method == "CONNECT":
+            total_request_types.append(RequestType.PROXY_ATTEMPT)
         else:
             method_score = 6
 
