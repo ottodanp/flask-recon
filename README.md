@@ -36,13 +36,13 @@ pip install psycopg2 flask
 Linux:
 
 ```bash
-sudo python3 -m flask_recon <port> [api|noapi] [webapp|nowebapp]
+python3 -m flask_recon <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]
 ```
 
 Windows:
 
 ```bash
-python -m flask_recon <port> [api|noapi] [webapp|nowebapp]
+python -m flask_recon <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]
 ```
 
 ### As part of another Flask application:
@@ -71,7 +71,7 @@ def search_requests():
     if not host:
         return "Invalid host", 400
 
-    return listener.database_handler.get_requests(RemoteHost(host)), 200
+    return listener.database_handler.get_requests(host), 200
 
 
 @listener.route("/api/all_hosts")
@@ -132,5 +132,4 @@ if __name__ == '__main__.py':
         port="5432"
     )
     app.run(host="0.0.0.0", port=80)
-
 ```
