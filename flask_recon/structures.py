@@ -1,68 +1,15 @@
 from enum import Enum
-from typing import Dict, Optional, Self
+from typing import Dict, Optional, Self, List, Tuple
 
 import werkzeug.exceptions
 from flask import Request
 
+from flask_recon.flags import KNOWN_FLAGS, Flag, RequestType, AttackType
+
 HALT_PAYLOAD = "STOP SCANNING"
-KNOWN_PAYLOAD_FLAGS = {
-    "login": 7,
-    "xmlrpc": 8,
-    "admin": 9,
-    "wp-": 8,
-    ".env": 10,
-    "cgi-": 8,
-    "bin": 9,
-    "config": 9,
-    "settings": 9,
-    "database": 9,
-    "db": 7,
-    "php": 8,
-    ".sh": 9,
-    "http://": 6,
-    "https://": 6,
-    "ftp://": 7,
-    "sftp://": 7,
-    "ssh://": 8,
-    "telnet://": 7,
-    "smtp://": 5,
-    "imap://": 5,
-    ".js": 3,
-    "sql": 9,
-    ".txt": 7,
-    "wget": 10,
-    "chmod": 10,
-    "chown": 10,
-    "chgrp": 10,
-    "777": 10,
-    "cd /": 10,
-    "rm -rf": 10,
-    "$(": 10,
-
-}
-MALICIOUS_UA_FLAGS = {
-    "sqlmap": 10,
-    "sqlninja": 10,
-    "havij": 8,
-    "w3af": 10,
-    "acunetix": 10,
-    "netsparker": 10,
-    "nmap": 10,
-    "nessus": 10,
-    "masscan": 7,
-    "zgrab": 10,
-    "zmap": 10,
-    "metasploit": 10,
-    "burp": 10,
-    "curl": 3,
-    "wget": 3,
-    "python": 6,
-    "perl": 6,
-    "ruby": 6,
-}
 
 
-class RequestType(Enum):
+class RequestMethod(Enum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -76,58 +23,28 @@ class RequestType(Enum):
     OTHER = "OTHER"
 
     @staticmethod
-    def from_str(method: str) -> "RequestType":
+    def from_str(method: str) -> "RequestMethod":
         if method == "GET":
-            return RequestType.GET
+            return RequestMethod.GET
         if method == "POST":
-            return RequestType.POST
+            return RequestMethod.POST
         if method == "PUT":
-            return RequestType.PUT
+            return RequestMethod.PUT
         if method == "DELETE":
-            return RequestType.DELETE
+            return RequestMethod.DELETE
         if method == "HEAD":
-            return RequestType.HEAD
+            return RequestMethod.HEAD
         if method == "OPTIONS":
-            return RequestType.OPTIONS
+            return RequestMethod.OPTIONS
         if method == "PATCH":
-            return RequestType.PATCH
+            return RequestMethod.PATCH
         if method == "TRACE":
-            return RequestType.TRACE
+            return RequestMethod.TRACE
         if method == "CONNECT":
-            return RequestType.CONNECT
+            return RequestMethod.CONNECT
         if method == "PRI":
-            return RequestType.PRI
-        return RequestType.OTHER
-
-
-class Services(Enum):
-    HTTP = [80, 8080, 8000]
-    FTP = [21]
-    SSH = [22]
-    SMTP = [25]
-    DNS = [53]
-    POP3 = [110]
-    IMAP = [143]
-    HTTPS = [443]
-    SMTPS = [465]
-    IMAPS = [993]
-    POP3S = [995]
-    MYSQL = [3306]
-    POSTGRES = [5432]
-    RDP = [3389]
-    VNC = [5900]
-    SNMP = [161]
-    SNMP_TRAP = [162]
-    LDAP = [389]
-    LDAPS = [636]
-    MSSQL = [1433]
-    ORACLE = [1521]
-    MONGODB = [27017]
-    REDIS = [6379]
-    ELASTICSEARCH = [9200]
-    KIBANA = [5601]
-    RABBITMQ = [5672]
-    MEMCACHED = [11211]
+            return RequestMethod.PRI
+        return RequestMethod.OTHER
 
 
 class RemoteHost:
@@ -153,7 +70,7 @@ class RemoteHost:
 class IncomingRequest:
     _host: RemoteHost
     _local_port: int
-    _request_method: RequestType
+    _request_method: RequestMethod
     _request_headers: Optional[Dict[str, str]]
     _request_uri: str
     _query_string: Optional[str]
@@ -163,13 +80,15 @@ class IncomingRequest:
     _timestamp: str
     _threat_level: Optional[int]
     _request_id: Optional[int]
+    _request_types: Optional[List[RequestType]] = None
+    _attack_types: Optional[List[AttackType]] = None
 
     def __init__(self, local_port: int):
         self._local_port = local_port
 
     def from_request(self, request: Request) -> Self:
         self._host = RemoteHost(request.remote_addr)
-        self._request_method = RequestType.from_str(request.method)
+        self._request_method = RequestMethod.from_str(request.method)
         self._request_headers = request.headers
         self._request_uri = request.url
         self._query_string = request.path
@@ -179,7 +98,7 @@ class IncomingRequest:
             self._request_body = None
         return self
 
-    def from_components(self, host: str, request_method: RequestType, request_headers: Optional[Dict[str, str]],
+    def from_components(self, host: str, request_method: RequestMethod, request_headers: Optional[Dict[str, str]],
                         request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]],
                         timestamp: str, threat_level: Optional[int] = None, request_id: Optional[int] = None) -> Self:
         self._host = RemoteHost(host)
@@ -195,42 +114,69 @@ class IncomingRequest:
 
     def determine_threat_level(self):
         method_score, uri_score, query_score, body_score, ua_score = 5, 4, 5, 0, 5
+        total_request_types, total_attack_types = [], []
 
         if self._request_headers and "user-agent" in [k.lower() for k in self._request_headers.keys()]:
             ua = self._request_headers.get("user-agent") or self._request_headers.get("User-Agent")
-            ua_score = self.calc_avg_tl_str(ua, MALICIOUS_UA_FLAGS)
+            ua_score, request_types, attack_types = self.calc_avg_tl_str(ua, KNOWN_FLAGS.known_ua_flags)
+            total_request_types.extend(request_types)
+            total_attack_types.extend(attack_types)
 
-        if self._request_method in [RequestType.POST, RequestType.PUT]:
+        if self._request_method in [RequestMethod.POST, RequestMethod.PUT]:
             method_score = 10
-        elif self._request_method in [RequestType.DELETE, RequestType.PATCH, RequestType.PRI]:
+        elif self._request_method in [RequestMethod.DELETE, RequestMethod.PATCH, RequestMethod.PRI]:
             method_score = 8
         else:
             method_score = 6
 
         if self._request_uri == "/":
             uri_score = 0
-        elif any(map(self._request_uri.__contains__, KNOWN_PAYLOAD_FLAGS.keys())):
-            uri_score = self.calc_avg_tl_str(self._request_uri, KNOWN_PAYLOAD_FLAGS)
+        elif any(map(self._request_uri.__contains__, [flag.flag for flag in KNOWN_FLAGS.known_payload_flags])):
+            uri_score, request_types, attack_types = self.calc_avg_tl_str(self._request_uri,
+                                                                          KNOWN_FLAGS.known_payload_flags)
+            total_request_types.extend(request_types)
+            total_attack_types.extend(attack_types)
         else:
             uri_score = 6
 
         if self._query_string:
-            query_score = self.calc_avg_tl_str(self._query_string, KNOWN_PAYLOAD_FLAGS)
+            query_score, request_types, attack_types = self.calc_avg_tl_str(self._query_string,
+                                                                            KNOWN_FLAGS.known_payload_flags)
+            total_request_types.extend(request_types)
+            total_attack_types.extend(attack_types)
         if self._request_body:
             body_score = 10
 
+        deduped_request_types = []
+        deduped_attack_types = []
+        for rtype in total_request_types:
+            if rtype not in deduped_request_types:
+                deduped_request_types.append(rtype)
+        for atype in total_attack_types:
+            if atype not in deduped_attack_types:
+                deduped_attack_types.append(atype)
+
+        if len(deduped_request_types) == 0:
+            deduped_request_types.append(RequestType.OTHER)
+        self._request_types = sorted(deduped_request_types, key=lambda x: total_request_types.count(x), reverse=True)
+        self._attack_types = sorted(deduped_attack_types, key=lambda x: total_attack_types.count(x), reverse=True)
         self._threat_level = int(round((method_score + uri_score + query_score + body_score + ua_score) / 5, 0))
 
     @staticmethod
-    def calc_avg_tl_str(value: str, flags: Dict[str, int]) -> float:
-        tl, fc = 0, 0
-        for flag, score in flags.items():
-            if flag in value:
-                tl += score
-                fc += 1
-        if fc > 0:
-            return tl / fc
-        return 5
+    def calc_avg_tl_str(value: str, flags: List[Flag]) -> Tuple[float, List[RequestType], List[AttackType]]:
+        threat_level, flag_count = 0, 0
+        request_types, attack_types = [], []
+        for flag in flags:
+            if flag.flag not in value:
+                continue
+
+            threat_level += flag.score
+            flag_count += 1
+            request_types.extend(flag.request_types)
+            if flag.attack_types:
+                attack_types.extend(flag.attack_types)
+
+        return (threat_level / flag_count if flag_count > 0 else 0.0), request_types, attack_types
 
     @property
     def csv_headers(self) -> str:
@@ -251,7 +197,7 @@ class IncomingRequest:
         return self._local_port
 
     @property
-    def method(self) -> RequestType:
+    def method(self) -> RequestMethod:
         return self._request_method
 
     @property
@@ -285,3 +231,11 @@ class IncomingRequest:
     @property
     def request_id(self) -> Optional[int]:
         return self._request_id
+
+    @property
+    def request_types(self) -> Optional[List[RequestType]]:
+        return self._request_types
+
+    @property
+    def attack_types(self) -> Optional[List[AttackType]]:
+        return self._attack_types

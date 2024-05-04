@@ -13,6 +13,8 @@
             <th scope="col">Acceptable</th>
             <th scope="col">Timestamp</th>
             <th scope="col">Port</th>
+            <th scope="col">Request Types</th>
+            <th scope="col">Attack Types</th>
             <th scope="col">Other Requests by Actor</th>
             <th scope="col">CSV Dump</th>
         </tr>
@@ -69,6 +71,42 @@
             <td>{{ request.is_acceptable }}</td>
             <td>{{ request.timestamp }}</td>
             <td>{{ request.local_port }}</td>
+            <td>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Request Type</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for request_type in request.request_types %}
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ request_type.value }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Attack Type</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for attack_type in request.attack_types %}
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ attack_type.value }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </td>
             <td>
                 <a href="/requests_by_host?host={{ request.host.address }}">
                     <button type="button" class="btn btn-primary">

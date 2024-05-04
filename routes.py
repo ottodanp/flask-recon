@@ -1,8 +1,9 @@
 from datetime import datetime
+from typing import List
 
 from flask import Flask, request, render_template
 
-from flask_recon import Listener, RemoteHost
+from flask_recon import Listener, RemoteHost, IncomingRequest
 
 app = Flask(__name__)
 
@@ -52,9 +53,10 @@ class WebApp:
 
     def html_requests_by_endpoint(self):
         endpoint = request.args.get("endpoint")
-        return render_template("view_requests.html",
-                               requests=self._listener.database_handler.get_requests(endpoint=endpoint),
-                               endpoint=endpoint, title=f"Requests to {endpoint}")
+        requests = self._listener.database_handler.get_requests(endpoint=endpoint)
+        self.update_tls(requests)
+        return render_template("view_requests.html", requests=requests, endpoint=endpoint,
+                               title=f"Requests to {endpoint}")
 
     def html_requests_by_host(self):
         host = request.args.get("host")
@@ -69,6 +71,7 @@ class WebApp:
         else:
             requests = self._listener.database_handler.get_requests(host=remote_host)
 
+        self.update_tls(requests)
         return render_template("view_requests.html", requests=requests, title=f"Requests from {host}")
 
     def html_search(self):
@@ -97,7 +100,7 @@ class WebApp:
             req = self._listener.database_handler.get_request(int(request_id))
             if req is None:
                 return "Request not found", 404
-            return req.as_csv(), 200
+            return req.as_csv, 200
         except ValueError:
             return "Invalid request_id parameter", 400
 
@@ -128,6 +131,11 @@ class WebApp:
     @staticmethod
     def favicon():
         return open("favicon.ico", "rb").read(), 200
+
+    @staticmethod
+    def update_tls(reqs: List[IncomingRequest]):
+        for req in reqs:
+            req.determine_threat_level()
 
 
 def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True):

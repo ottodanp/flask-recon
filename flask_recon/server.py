@@ -5,7 +5,7 @@ from flask import Flask, request, Response
 
 from flask_recon.database import DatabaseHandler
 from flask_recon.honeypot import get_connect_target
-from flask_recon.structures import IncomingRequest, RequestType, HALT_PAYLOAD
+from flask_recon.structures import IncomingRequest, RequestMethod, HALT_PAYLOAD
 
 PORTS = {
     "80": "http",
@@ -50,7 +50,7 @@ class Listener:
                        body: Dict[str, str]):
         req = IncomingRequest(self._port).from_components(
             host=remote_address,
-            request_method=RequestType.from_str(method),
+            request_method=RequestMethod.from_str(method),
             request_headers=headers,
             request_uri=uri,
             query_string=query_string,

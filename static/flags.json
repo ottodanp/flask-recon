@@ -1,0 +1,597 @@
+{
+  "payload": [
+    {
+      "flag": "login",
+      "score": 7,
+      "request_types": [
+        "RECON"
+      ]
+    },
+    {
+      "flag": "xmlrpc",
+      "score": 8,
+      "request_types": [
+        "RECON",
+        "SCAN"
+      ]
+    },
+    {
+      "flag": "admin",
+      "score": 10,
+      "request_types": [
+        "RECON",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "WEBAPP_VULN"
+      ]
+    },
+    {
+      "flag": "wp-",
+      "score": 9,
+      "request_types": [
+        "RECON",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "WEBAPP_VULN"
+      ]
+    },
+    {
+      "flag": ".env",
+      "score": 10,
+      "request_types": [
+        "GRAB",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "LFI"
+      ]
+    },
+    {
+      "flag": "cgi-",
+      "score": 8,
+      "request_types": [
+        "RECON",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "WEBAPP_VULN"
+      ]
+    },
+    {
+      "flag": "bin",
+      "score": 9,
+      "request_types": [
+        "RECON",
+        "GRAB",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "LFI"
+      ]
+    },
+    {
+      "flag": "config",
+      "score": 9,
+      "request_types": [
+        "GRAB",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "settings",
+      "score": 9,
+      "request_types": [
+        "GRAB",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "database",
+      "score": 9,
+      "request_types": [
+        "GRAB",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "db",
+      "score": 7,
+      "request_types": [
+        "RECON"
+      ]
+    },
+    {
+      "flag": "php",
+      "score": 8,
+      "request_types": [
+        "ATTACK",
+        "SCAN",
+        "RECON"
+      ],
+      "attack_types": [
+        "WEBAPP_VULN"
+      ]
+    },
+    {
+      "flag": ".sh",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "shell",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "upload",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "LFI"
+      ]
+    },
+    {
+      "flag": "cmd",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "exec",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "eval",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "include",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "require",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "system",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "passthru",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "popen",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "proc_open",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "system",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "assert",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "shell_exec",
+      "score": 9,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE",
+        "LFI"
+      ]
+    },
+    {
+      "flag": "http://",
+      "score": 6,
+      "request_types": [
+        "ATTACK",
+        "SCAN",
+        "RECON"
+      ],
+      "attack_types": [
+        "RFI"
+      ]
+    },
+    {
+      "flag": "https://",
+      "score": 6,
+      "request_types": [
+        "ATTACK",
+        "SCAN",
+        "RECON"
+      ],
+      "attack_types": [
+        "RFI"
+      ]
+    },
+    {
+      "flag": "ftp://",
+      "score": 7,
+      "request_types": [
+        "ATTACK",
+        "SCAN",
+        "RECON"
+      ],
+      "attack_types": [
+        "RFI"
+      ]
+    },
+    {
+      "flag": ".js",
+      "score": 3,
+      "request_types": [
+        "GRAB",
+        "SCAN",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "sql",
+      "score": 9,
+      "request_types": [
+        "GRAB",
+        "SCAN",
+        "RECON",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "WEBAPP_VULN"
+      ]
+    },
+    {
+      "flag": ".txt",
+      "score": 7,
+      "request_types": [
+        "GRAB",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "wget",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "chmod",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "chown",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "chgrp",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "777",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "cd /",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "rm -rf",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "$(",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    },
+    {
+      "flag": "eval(",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "RCE"
+      ]
+    }
+  ],
+  "user_agent": [
+    {
+      "flag": "sqlmap",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "SQLI"
+      ]
+    },
+    {
+      "flag": "sqlninja",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "SQLI"
+      ]
+    },
+    {
+      "flag": "havij",
+      "score": 8,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "SQLI"
+      ]
+    },
+    {
+      "flag": "w3af",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "acunetix",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "netsparker",
+      "score": 10,
+      "request_types": [
+        "SCAN",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "nmap",
+      "score": 10,
+      "request_types": [
+        "SCAN",
+        "RECON"
+      ]
+    },
+    {
+      "flag": "nessus",
+      "score": 10,
+      "request_types": [
+        "ATTACK",
+        "SCAN"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "masscan",
+      "score": 7,
+      "request_types": [
+        "SCAN"
+      ]
+    },
+    {
+      "flag": "zgrab",
+      "score": 10,
+      "request_types": [
+        "SCAN",
+        "ATTACK"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "zmap",
+      "score": 10,
+      "request_types": [
+        "SCAN"
+      ]
+    },
+    {
+      "flag": "metasploit",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "burp",
+      "score": 10,
+      "request_types": [
+        "ATTACK"
+      ],
+      "attack_types": [
+        "MULTIPLE"
+      ]
+    },
+    {
+      "flag": "curl",
+      "score": 3,
+      "request_types": [
+        "OTHER"
+      ]
+    },
+    {
+      "flag": "wget",
+      "score": 3,
+      "request_types": [
+        "OTHER"
+      ]
+    },
+    {
+      "flag": "python",
+      "score": 6,
+      "request_types": [
+        "OTHER"
+      ]
+    },
+    {
+      "flag": "perl",
+      "score": 6,
+      "request_types": [
+        "OTHER"
+      ]
+    },
+    {
+      "flag": "ruby",
+      "score": 6,
+      "request_types": [
+        "OTHER"
+      ]
+    }
+  ]
+}

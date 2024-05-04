@@ -3,7 +3,7 @@ from typing import List
 
 from psycopg2 import connect
 
-from flask_recon import DatabaseHandler, IncomingRequest, RequestType
+from flask_recon import DatabaseHandler, IncomingRequest, RequestMethod
 from os import listdir
 
 
@@ -38,7 +38,7 @@ def get_all_requests(dbname: str, user: str, password: str, host: str, port: str
         s.add(f)
         yield IncomingRequest(row[8]).from_components(
             host=host,
-            request_method=RequestType[row[3]],
+            request_method=RequestMethod[row[3]],
             request_headers=loads(row[6]),
             request_uri=row[4],
             query_string=row[7],
