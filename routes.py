@@ -89,6 +89,18 @@ class WebApp:
             return render_template("search.html", requests=results)
         return render_template("search.html")
 
+    def csv_request_dump(self):
+        request_id = request.args.get("request_id")
+        if request_id is None:
+            return "Missing request_id parameter", 400
+        try:
+            req = self._listener.database_handler.get_request(int(request_id))
+            if req is None:
+                return "Request not found", 404
+            return req.as_csv(), 200
+        except ValueError:
+            return "Invalid request_id parameter", 400
+
     def home(self):
         last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
         last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
@@ -137,3 +149,4 @@ def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True
         listener.route("/home")(webapp.home)
         listener.route("/search")(webapp.html_search)
         listener.route("/favicon.ico")(webapp.favicon)
+        listener.route("/csv_dump")(webapp.csv_request_dump)

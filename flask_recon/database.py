@@ -66,6 +66,23 @@ class DatabaseHandler(cursor):
              request.threat_level))
         self._conn.commit()
 
+    def get_request(self, request_id: int) -> IncomingRequest:
+        self.execute("SELECT * FROM requests WHERE request_id = %s", (request_id,))
+        row = self.fetchone()
+        self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[1],))
+        host = RemoteHost(self.fetchone()[0])
+        return IncomingRequest(row[6]).from_components(
+            host=host.address,
+            timestamp=row[2],
+            request_method=row[3],
+            request_body=loads(row[5]),
+            request_headers=loads(row[6]),
+            query_string=row[7],
+            request_uri=row[4],
+            request_id=row[0],
+            threat_level=row[10],
+        )
+
     def get_honeypot(self, file: str) -> Optional[str]:
         self.execute("SELECT dummy_contents FROM honeypots WHERE file_name = %s", (file,))
         return self.fetchone()[0] if self.rowcount > 0 else None

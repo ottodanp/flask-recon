@@ -14,6 +14,7 @@
             <th scope="col">Timestamp</th>
             <th scope="col">Port</th>
             <th scope="col">Other Requests by Actor</th>
+            <th scope="col">CSV Dump</th>
         </tr>
         </thead>
         <tbody>
@@ -72,6 +73,13 @@
                 <a href="/requests_by_host?host={{ request.host.address }}">
                     <button type="button" class="btn btn-primary">
                         Actor Requests
+                    </button>
+                </a>
+            </td>
+            <td>
+                <a href="/csv_dump?request_id={{ request.request_id }}">
+                    <button type="button" class="btn btn-primary">
+                        CSV Dump
                     </button>
                 </a>
             </td>

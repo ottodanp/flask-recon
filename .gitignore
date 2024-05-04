@@ -1,8 +1,0 @@
-/dist
-.gitignore
-/build
-/.venv
-/.idea
-.pypirc
-*.pyc
-/.git

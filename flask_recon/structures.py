@@ -233,6 +233,16 @@ class IncomingRequest:
         return 5
 
     @property
+    def csv_headers(self) -> str:
+        return "origin_host,method,uri,query_string,headers,body,timestamp"
+
+    @property
+    def as_csv(self) -> str:
+        qs_sep = "?" if self.query_string else ""
+        return (f"{self.host.address},{self.method},{self.uri}{qs_sep}{self.query_string},{self.headers},{self.body},"
+                f"{self.timestamp}")
+
+    @property
     def host(self) -> RemoteHost:
         return self._host
 
