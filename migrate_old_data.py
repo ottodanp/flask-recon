@@ -87,8 +87,8 @@ def add_honeypots():
         port="5432"
     )
 
-    for file in listdir("honey_pot"):
-        with open(f"honey_pot/{file}", "r") as f:
+    for file in listdir("static/honey_pot"):
+        with open(f"static/honey_pot/{file}", "r") as f:
             new_db.insert_honeypot(file, f.read())
 
 
