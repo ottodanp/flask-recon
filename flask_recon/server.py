@@ -4,7 +4,6 @@ from typing import Tuple, Dict, Optional
 from flask import Flask, request, Response
 
 from flask_recon.database import DatabaseHandler
-from flask_recon.honeypot import get_connect_target
 from flask_recon.structures import IncomingRequest, RequestMethod, HALT_PAYLOAD
 
 PORTS = {
@@ -74,17 +73,6 @@ class Listener:
             return "", 200
 
         return "404 Not Found", 404
-
-    def handle_connect(self, req: IncomingRequest):
-        target = req.uri
-        if (connect_target := self.process_connect_target(target)) is None:
-            return "400 Bad Request", 400
-
-        if self._database_handler.connect_target_exists(connect_target):
-            return self._database_handler.get_connect_target(connect_target), 200
-
-        if (response := get_connect_target(connect_target)) is None:
-            return "400 Bad Request", 400
 
     @staticmethod
     def process_connect_target(target: str) -> Optional[str]:

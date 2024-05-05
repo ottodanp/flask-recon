@@ -45,10 +45,6 @@ class DatabaseHandler(cursor):
         self.execute("UPDATE actors SET threat_level = %s WHERE actor_id = %s", (threat_level, actor_id))
         self._conn.commit()
 
-    def actor_is_flagged(self, remote_host: RemoteHost) -> bool:
-        self.execute("SELECT flagged FROM actors WHERE host = %s", (remote_host.address,))
-        return self.fetchone()[0]
-
     def insert_request(self, request: IncomingRequest) -> None:
         if not self.actor_exists(request.host):
             self.insert_actor(request.host)
@@ -205,21 +201,21 @@ class DatabaseHandler(cursor):
         self.execute("SELECT body FROM connect_targets WHERE url = %s", (url,))
         return self.fetchone()[0]
 
-    def search(
-            self,
-            actor: Optional[str] = None,
-            uri: Optional[str] = None,
-            method: Optional[str] = None,
-            threat_level: Optional[int] = None,
-            acceptable: Optional[bool] = None,
-            host: Optional[str] = None,
-            headers: Optional[str] = None,
-            query_string: Optional[str] = None,
-            body: Optional[str] = None,
-            all_must_match: bool = False,
-            case_sensitive: bool = False,
-    ) -> List[IncomingRequest]:
-        query = "SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path, request_id FROM requests"
+    def search(self,
+               actor: Optional[str] = None,
+               uri: Optional[str] = None,
+               method: Optional[str] = None,
+               threat_level: Optional[int] = None,
+               acceptable: Optional[bool] = None,
+               host: Optional[str] = None,
+               headers: Optional[str] = None,
+               query_string: Optional[str] = None,
+               body: Optional[str] = None,
+               all_must_match: bool = False,
+               case_sensitive: bool = False,
+               ) -> List[IncomingRequest]:
+        query = ("SELECT actor_id, timestamp, method, body, headers, query_string, port, acceptable, path, request_id "
+                 "FROM requests")
         conditions = []
         variables = []
         if actor:
@@ -262,16 +258,10 @@ class DatabaseHandler(cursor):
         for row in requests:
             self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[0],))
             host = RemoteHost(self.fetchone()[0])
-            incoming_request = IncomingRequest(row[6]).from_components(
-                host=host.address,
-                timestamp=row[1],
-                request_method=row[2],
-                request_body=loads(row[3]),
-                request_headers=loads(row[4]),
-                query_string=row[5],
-                request_uri=row[8],
-                request_id=row[-1],
-                threat_level=row[7],
+            incoming_request = (IncomingRequest(row[6])
+            .from_components(
+                request_method=row[2], request_body=loads(row[3]), threat_level=row[7], request_headers=loads(row[4]),
+                timestamp=row[1], query_string=row[5], request_uri=row[8], request_id=row[-1], host=host.address)
             )
             incoming_request.determine_threat_level()
             r.append(incoming_request)
@@ -323,12 +313,5 @@ class DatabaseHandler(cursor):
                 FROM "requests"
             ) AS "time_diffs"
             WHERE "time_diff" IS NOT NULL;
-        """)
-        return self.fetchone()[0]
-
-    def get_time_since_last_request(self) -> str:
-        self.execute("""
-            SELECT NOW() - MAX("timestamp")
-            FROM "requests";
         """)
         return self.fetchone()[0]

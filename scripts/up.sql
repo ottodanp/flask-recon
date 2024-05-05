@@ -6,15 +6,6 @@ CREATE TABLE IF NOT EXISTS "actors"
     "threat_level" INTEGER      NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS "services"
-(
-    "service_id" SERIAL PRIMARY KEY,
-    "actor_id"   INTEGER      NOT NULL,
-    "service"    VARCHAR(255) NOT NULL,
-    "port"       INTEGER      NOT NULL,
-    FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
-);
-
 CREATE TABLE IF NOT EXISTS "requests"
 (
     "request_id"   SERIAL PRIMARY KEY,
@@ -56,9 +47,8 @@ CREATE TABLE IF NOT EXISTS "analysed_actors"
     FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
 );
 
-CREATE TABLE IF NOT EXISTS "connect_targets"
+CREATE TABLE IF NOT EXISTS "authorized_addresses"
 (
-    "target_id" SERIAL PRIMARY KEY,
-    "url"       VARCHAR(255) NOT NULL,
-    "body"      TEXT
+    "address_id" SERIAL PRIMARY KEY,
+    "address"    VARCHAR(255) NOT NULL
 );
