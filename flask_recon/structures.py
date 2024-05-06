@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Optional, Self, List, Tuple
+from typing import Dict, Optional, List, Tuple
 
 import werkzeug.exceptions
 from flask import Request
@@ -86,7 +86,7 @@ class IncomingRequest:
     def __init__(self, local_port: int):
         self._local_port = local_port
 
-    def from_request(self, request: Request) -> Self:
+    def from_request(self, request: Request) -> "IncomingRequest":
         self._host = RemoteHost(request.remote_addr)
         self._request_method = RequestMethod.from_str(request.method)
         self._request_headers = request.headers
@@ -100,7 +100,7 @@ class IncomingRequest:
 
     def from_components(self, host: str, request_method: RequestMethod, request_headers: Optional[Dict[str, str]],
                         request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]],
-                        timestamp: str, threat_level: Optional[int] = None, request_id: Optional[int] = None) -> Self:
+                        timestamp: str, threat_level: Optional[int] = None, request_id: Optional[int] = None) -> "IncomingRequest":
         self._host = RemoteHost(host)
         self._request_method = request_method
         self._request_headers = request_headers
