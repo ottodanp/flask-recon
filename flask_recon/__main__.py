@@ -22,7 +22,7 @@ if __name__ == '__main__':
         exit(1)
 
     listener = Listener(
-        flask=Flask(__name__),
+        flask=Flask(__name__, template_folder="templates"),
         halt_scanner_threads="halt" in argv,
         max_halt_messages=100_000,
         port=port

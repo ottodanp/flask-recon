@@ -126,7 +126,7 @@ class WebApp:
 
     def register(self):
         if request.method == "GET":
-            return render_template("register.html")
+            return render_template("register_form.html")
 
         username = request.form.get("username")
         password = request.form.get("password")
@@ -148,7 +148,7 @@ class WebApp:
 
     def login(self):
         if request.method == "GET":
-            return render_template("login.html")
+            return render_template("login_form.html")
 
         username = request.form.get("username")
         password = request.form.get("password")
