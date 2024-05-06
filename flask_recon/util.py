@@ -9,19 +9,19 @@ from flask_recon.structures import IncomingRequest, RequestType, AttackType
 COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
 REMOTE_TEMPLATE_URL_BASE = "https://raw.githubusercontent.com/ottodanp/flask-recon/master/"
 TEMPLATE_FILES = [
-    "templates/footer.html",
-    "templates/head.html",
-    "templates/home.html",
-    "templates/hosts.html",
-    "templates/hosts_by_endpoint.html",
-    "templates/navbar.html",
-    "templates/request_table.html",
-    "templates/search.html",
-    "templates/view_endpoints.html",
-    "templates/view_hosts.html",
-    "templates/view_requests.html",
-    "templates/login_form.html",
-    "templates/register_form.html",
+    "flask_recon/templates/footer.html",
+    "flask_recon/templates/head.html",
+    "flask_recon/templates/home.html",
+    "flask_recon/templates/hosts.html",
+    "flask_recon/templates/hosts_by_endpoint.html",
+    "flask_recon/templates/navbar.html",
+    "flask_recon/templates/request_table.html",
+    "flask_recon/templates/search.html",
+    "flask_recon/templates/view_endpoints.html",
+    "flask_recon/templates/view_hosts.html",
+    "flask_recon/templates/view_requests.html",
+    "flask_recon/templates/login_form.html",
+    "flask_recon/templates/register_form.html",
 ]
 
 
@@ -92,7 +92,7 @@ class RequestAnalyser:
 
 
 def download_templates():
-    mkdir("templates")
+    mkdir("flask_recon/templates")
     for template in TEMPLATE_FILES:
         if isfile(template):
             continue

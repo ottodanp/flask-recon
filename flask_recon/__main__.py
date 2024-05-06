@@ -11,8 +11,11 @@ if __name__ == '__main__':
               "[Optional[gen_admin_key]]")
         exit(1)
     port = argv[1]
-    if "webapp" in argv and not isdir("templates"):
-        input("templates must be found in /templates. Press enter to download templates.")
+    if "webapp" in argv and not isdir("flask_recon/templates"):
+        if not isdir("flask_recon"):
+            print("Package directory must be named flask_recon.")
+            exit(1)
+        input("templates must be found in flask_recon/templates. Press enter to download templates.")
         download_templates()
 
     try:

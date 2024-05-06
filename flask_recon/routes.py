@@ -199,5 +199,5 @@ def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True
         listener.route("/search")(webapp.html_search)
         listener.route("/favicon.ico")(webapp.favicon)
         listener.route("/csv_dump")(webapp.csv_request_dump)
-        listener.route("/register", methods=["GET", "POST"])(webapp.register)
+        listener.route("/register")(webapp.register)
         listener.route("/login", methods=["GET", "POST"])(webapp.login)
