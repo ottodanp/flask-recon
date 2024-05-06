@@ -1,17 +1,19 @@
+from os.path import isdir
 from sys import argv
 
 from flask import Flask
 
-from flask_recon import Listener
-from routes import add_routes
+from flask_recon import Listener, download_templates, add_routes
 
 if __name__ == '__main__':
-    if len(argv) != 6:
-        print("Usage: python main.py <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]")
+    if not 3 <= len(argv) <= 7:
+        print("Usage: python main.py <port> <host> [Optional[api]] [Optional[webapp]] [Optional[halt]] [Optional[ssl]] "
+              "[Optional[gen_admin_key]]")
         exit(1)
-    port, run_api, run_webapp, halt, ssl = argv[1:]
-    if run_webapp == "webapp":
-        input("templates must be found in /templates. Press enter to continue.")
+    port = argv[1]
+    if "webapp" in argv and not isdir("templates"):
+        input("templates must be found in /templates. Press enter to download templates.")
+        download_templates()
 
     try:
         port = int(port)
@@ -21,12 +23,12 @@ if __name__ == '__main__':
 
     listener = Listener(
         flask=Flask(__name__),
-        halt_scanner_threads=halt == "halt",
+        halt_scanner_threads="halt" in argv,
         max_halt_messages=100_000,
         port=port
     )
     listener.connect_database(
-        dbname="flask_recon",
+        dbname="new_flask_recon",
         user="postgres",
         password="postgres",
         host="localhost",
@@ -34,10 +36,13 @@ if __name__ == '__main__':
     )
     add_routes(
         listener=listener,
-        run_api=run_api == "api",
-        run_webapp=run_webapp == "webapp"
+        run_api="api" in argv,
+        run_webapp="webapp" in argv
     )
-    if ssl == "ssl":
-        listener.run(host="0.0.0.0", port=port, ssl_context=("cert.pem", "key.pem",))
+    if "gen_admin_key" in argv:
+        print("Admin Registration Key: ", listener.database_handler.generate_admin_key())
+
+    if "ssl" in argv:
+        listener.run(host=argv[2], port=port, ssl_context=("cert.pem", "key.pem",))
     else:
-        listener.run(host="0.0.0.0", port=port)
+        listener.run(host=argv[2], port=port)

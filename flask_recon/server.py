@@ -5,6 +5,7 @@ from flask import Flask, request, Response
 
 from flask_recon.database import DatabaseHandler
 from flask_recon.structures import IncomingRequest, RequestMethod, HALT_PAYLOAD
+from flask_recon.util import RequestAnalyser
 
 PORTS = {
     "80": "http",
@@ -18,9 +19,11 @@ class Listener:
     _port: int
     _halt_scanner_threads: bool
     _max_halt_messages: int
+    _request_analyser: RequestAnalyser
 
     def __init__(self, flask: Flask, halt_scanner_threads: bool = True, max_halt_messages: int = 100_000,
                  port: int = 80):
+        self._request_analyser = RequestAnalyser(open("token", "r").read())
         self._port = port
         self._halt_scanner_threads = halt_scanner_threads
         self._max_halt_messages = max_halt_messages

@@ -1,13 +1,13 @@
 from sys import argv
-
+from os import system
 from flask import Flask
 
 from flask_recon import Listener
-from routes import add_routes
+from flask_recon.routes import add_routes
 
 if __name__ == '__main__':
     listener = Listener(
-        flask=Flask(__name__),
+        flask=Flask(__name__, template_folder=""),
         halt_scanner_threads=False,
         max_halt_messages=100_000,
         port=80

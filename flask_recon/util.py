@@ -1,3 +1,5 @@
+from os import mkdir
+from os.path import isfile
 from typing import Optional
 
 from requests import get
@@ -5,6 +7,20 @@ from requests import get
 from flask_recon.structures import IncomingRequest, RequestType, AttackType
 
 COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
+REMOTE_TEMPLATE_URL_BASE = "https://raw.githubusercontent.com/ottodanp/flask-recon/master/"
+TEMPLATE_FILES = [
+    "templates/footer.html",
+    "templates/head.html",
+    "templates/home.html",
+    "templates/hosts.html",
+    "templates/hosts_by_endpoint.html",
+    "templates/navbar.html",
+    "templates/request_table.html",
+    "templates/search.html",
+    "templates/view_endpoints.html",
+    "templates/view_hosts.html",
+    "templates/view_requests.html",
+]
 
 
 class RequestAnalyser:
@@ -20,7 +36,7 @@ class RequestAnalyser:
         response = self.send_openai_request(user_message)
         return response["choices"][0]["message"]["content"]
 
-    def send_openai_request(self, message: str):
+    def send_openai_request(self, message: str) -> dict:
         response = get(
             COMPLETIONS_URL, headers=self.openai_headers,
             json=self.generate_openai_request_body(message, self._generation_temperature, self.system_message)
@@ -70,4 +86,14 @@ class RequestAnalyser:
 
     @staticmethod
     def example_analysis_response() -> str:
-        return """{"malice_raiting": 0.9, "request_type": "attack", "attack_type": "SQL Injection", "threat_level": 9}"""
+        return """{"malice_raiting": 0.9, "request_type": "attack", "attack_type": "SQL Injection", "threat_level": 9, "written_analysis": "This request aims to... By... . The request is a SQL Injection attack and poses a significant threat to the system."}"""
+
+
+def download_templates():
+    mkdir("templates")
+    for template in TEMPLATE_FILES:
+        if isfile(template):
+            continue
+
+        with open(template, "wb") as f:
+            f.write(get(REMOTE_TEMPLATE_URL_BASE + template).content)

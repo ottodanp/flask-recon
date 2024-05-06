@@ -1,10 +1,10 @@
 from json import loads
+from os import listdir
 from typing import List
 
 from psycopg2 import connect
 
 from flask_recon import DatabaseHandler, IncomingRequest, RequestMethod
-from os import listdir
 
 
 def get_all_requests(dbname: str, user: str, password: str, host: str, port: str) -> List[IncomingRequest]:
@@ -28,14 +28,9 @@ def get_all_requests(dbname: str, user: str, password: str, host: str, port: str
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM requests")
     rows = cursor.fetchall()
-    s = set()
     for row in rows:
         cursor.execute("SELECT host FROM actors WHERE actor_id = %s", (row[1],))
         host = cursor.fetchone()[0]
-        f = f"{host}{row[3]}{row[4]}{row[6]}{row[7]}{row[5]}"
-        if f in s:
-            continue
-        s.add(f)
         yield IncomingRequest(row[8]).from_components(
             host=host,
             request_method=RequestMethod[row[3]],
@@ -48,7 +43,7 @@ def get_all_requests(dbname: str, user: str, password: str, host: str, port: str
 
 
 def migrate_new_data():
-    requests = get_all_requests(dbname="flask_recon", user="postgres", password="postgres", host="localhost",
+    requests = get_all_requests(dbname="temp_flask_recon", user="postgres", password="postgres", host="localhost",
                                 port="5432")
 
     new_db = DatabaseHandler(
@@ -93,4 +88,4 @@ def add_honeypots():
 
 
 if __name__ == '__main__':
-    add_honeypots()
+    migrate_new_data()

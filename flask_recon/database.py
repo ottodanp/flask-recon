@@ -1,10 +1,11 @@
 from datetime import datetime
 from json import dumps, loads
 from typing import Optional, List, Tuple, Dict, Union, Any
+from uuid import uuid4
 
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
-
+from hashlib import sha256
 from flask_recon.structures import IncomingRequest, RemoteHost
 
 
@@ -35,6 +36,10 @@ class DatabaseHandler(cursor):
     def get_actor_id(self, remote_host: RemoteHost) -> int:
         self.execute("SELECT actor_id FROM actors WHERE host = %s", (remote_host.address,))
         return self.fetchone()[0]
+
+    def address_is_authorised(self, remote_host: RemoteHost) -> bool:
+        self.execute("SELECT address FROM authorized_addresses WHERE host = %s", (remote_host.address,))
+        return True if self.fetchone() else False
 
     def update_request_threat_level(self, request_id: int, threat_level: int) -> None:
         self.execute("UPDATE requests SET threat_level = %s WHERE request_id = %s", (threat_level, request_id))
@@ -315,3 +320,46 @@ class DatabaseHandler(cursor):
             WHERE "time_diff" IS NOT NULL;
         """)
         return self.fetchone()[0]
+
+    def generate_admin_key(self) -> str:
+        key = str(uuid4())
+        self.execute("INSERT INTO admin_keys (key) VALUES (%s)", (key,))
+        self._conn.commit()
+        return key
+
+    def generate_admin_session_token(self, admin_username: str) -> str:
+        self.execute("SELECT admin_id FROM admins WHERE username = %s", (admin_username,))
+        admin_id = self.fetchone()[0]
+        token = str(uuid4())
+        self.execute("INSERT INTO admin_sessions (token, admin_id) VALUES (%s, %s)", (token, admin_id))
+        self._conn.commit()
+        return token
+
+    def validate_session_token(self, token: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT token FROM admin_sessions WHERE token = %s)", (token,))
+        return self.fetchone()[0]
+
+    def validate_and_delete_registration_key(self, key: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT key FROM registration_keys WHERE key = %s)", (key,))
+        if not self.fetchone()[0]:
+            return False
+        self.execute("DELETE FROM registration_keys WHERE key = %s", (key,))
+        self._conn.commit()
+        return True
+
+    def add_admin(self, username: str, password: str):
+        self.execute("INSERT INTO admins (username, password) VALUES (%s, %s)", (username, self.hash_password(password)))
+        self._conn.commit()
+
+    def validate_admin_credentials(self, username: str, password: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT username FROM admins WHERE username = %s AND password = %s)",
+                     (username, self.hash_password(password)))
+        return self.fetchone()[0]
+
+    def username_exists(self, username: str) -> bool:
+        self.execute("SELECT EXISTS(SELECT username FROM admins WHERE username = %s)", (username,))
+        return self.fetchone()[0]
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        return sha256(password.encode()).hexdigest()

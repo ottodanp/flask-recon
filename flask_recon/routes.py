@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, Response, redirect
 
 from flask_recon import Listener, RemoteHost, IncomingRequest
-
+from os import system
 app = Flask(__name__)
 
 
@@ -105,6 +105,7 @@ class WebApp:
             return "Invalid request_id parameter", 400
 
     def home(self):
+        print(system("pwd"))
         last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
         last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
         time_between_requests = self._listener.database_handler.get_average_time_between_requests()
@@ -122,6 +123,46 @@ class WebApp:
             time_between_requests=self.parse_time(str(time_between_requests)),
             last_actor=last_actor
         )
+
+    def register(self):
+        if request.method == "GET":
+            return render_template("register.html")
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+        registration_key = request.form.get("registration_key")
+        if not username or not password or not registration_key:
+            return "Missing username, password or registration key", 400
+
+        if not self._listener.database_handler.validate_and_delete_registration_key(registration_key):
+            return "Invalid registration key", 400
+
+        if self._listener.database_handler.username_exists(username):
+            return "Username already exists", 400
+
+        self._listener.database_handler.add_admin(username, password)
+        session_token = self._listener.database_handler.generate_admin_session_token(username)
+        response = Response("Registered")
+        response.set_cookie("X-Session-Token", session_token)
+        return response
+
+    def login(self):
+        if request.method == "GET":
+            return render_template("login.html")
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username or not password:
+            return "Missing username or password", 400
+
+        if not self._listener.database_handler.validate_admin_credentials(username, password):
+            return "Invalid username or password", 400
+
+        session_token = self._listener.database_handler.generate_admin_session_token(username)
+
+        response = Response("Logged in")
+        response.set_cookie("X-Session-Token", session_token)
+        return response
 
     @staticmethod
     def parse_time(t: str) -> str:
@@ -158,3 +199,5 @@ def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True
         listener.route("/search")(webapp.html_search)
         listener.route("/favicon.ico")(webapp.favicon)
         listener.route("/csv_dump")(webapp.csv_request_dump)
+        listener.route("/register", methods=["GET", "POST"])(webapp.register)
+        listener.route("/login", methods=["GET", "POST"])(webapp.login)

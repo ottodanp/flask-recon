@@ -47,8 +47,23 @@ CREATE TABLE IF NOT EXISTS "analysed_actors"
     FOREIGN KEY ("actor_id") REFERENCES "actors" ("actor_id")
 );
 
-CREATE TABLE IF NOT EXISTS "authorized_addresses"
+CREATE TABLE IF NOT EXISTS "admins"
 (
-    "address_id" SERIAL PRIMARY KEY,
-    "address"    VARCHAR(255) NOT NULL
+    "admin_id" SERIAL PRIMARY KEY,
+    "username" VARCHAR(255) NOT NULL,
+    "password" VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "admin_sessions"
+(
+    "session_id" SERIAL PRIMARY KEY,
+    "admin_id"   INTEGER,
+    "token"      VARCHAR(255),
+    FOREIGN KEY ("admin_id") REFERENCES "admins" ("admin_id")
+);
+
+CREATE TABLE IF NOT EXISTS "admin_keys"
+(
+    "key_id" SERIAL PRIMARY KEY,
+    "key"    VARCHAR(255) NOT NULL
 );
