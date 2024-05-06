@@ -23,7 +23,7 @@ class RequestMethod(Enum):
     OTHER = "OTHER"
 
     @staticmethod
-    def from_str(method: str) -> "RequestMethod":
+    def from_str(method: str) -> "RequestMethod":  # TODO change to switch case
         if method == "GET":
             return RequestMethod.GET
         if method == "POST":
@@ -100,7 +100,8 @@ class IncomingRequest:
 
     def from_components(self, host: str, request_method: RequestMethod, request_headers: Optional[Dict[str, str]],
                         request_uri: str, query_string: Optional[str], request_body: Optional[Dict[str, str]],
-                        timestamp: str, threat_level: Optional[int] = None, request_id: Optional[int] = None) -> "IncomingRequest":
+                        timestamp: str, threat_level: Optional[int] = None,
+                        request_id: Optional[int] = None) -> "IncomingRequest":
         self._host = RemoteHost(host)
         self._request_method = request_method
         self._request_headers = request_headers

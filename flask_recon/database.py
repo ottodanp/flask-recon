@@ -1,11 +1,12 @@
 from datetime import datetime
+from hashlib import sha256
 from json import dumps, loads
 from typing import Optional, List, Tuple, Dict, Union, Any
 from uuid import uuid4
 
 from psycopg2 import connect
 from psycopg2.extensions import cursor, connection
-from hashlib import sha256
+
 from flask_recon.structures import IncomingRequest, RemoteHost
 
 
@@ -348,7 +349,8 @@ class DatabaseHandler(cursor):
         return True
 
     def add_admin(self, username: str, password: str):
-        self.execute("INSERT INTO admins (username, password) VALUES (%s, %s)", (username, self.hash_password(password)))
+        self.execute("INSERT INTO admins (username, password) VALUES (%s, %s)",
+                     (username, self.hash_password(password)))
         self._conn.commit()
 
     def validate_admin_credentials(self, username: str, password: str) -> bool:
