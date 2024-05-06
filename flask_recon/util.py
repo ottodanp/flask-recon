@@ -20,6 +20,8 @@ TEMPLATE_FILES = [
     "templates/view_endpoints.html",
     "templates/view_hosts.html",
     "templates/view_requests.html",
+    "templates/login_form.html",
+    "templates/register_form.html",
 ]
 
 
