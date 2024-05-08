@@ -1,3 +1,4 @@
+from re import compile
 from time import sleep
 from typing import Tuple, Dict, Optional
 
@@ -20,6 +21,7 @@ class Listener:
     _halt_scanner_threads: bool
     _max_halt_messages: int
     _request_analyser: RequestAnalyser
+    _ip_regex = compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 
     def __init__(self, flask: Flask, halt_scanner_threads: bool = True, max_halt_messages: int = 100_000,
                  port: int = 80):
@@ -50,6 +52,15 @@ class Listener:
 
     def handle_request(self, headers: Dict[str, str], method: str, remote_address: str, uri: str, query_string: str,
                        body: Dict[str, str]):
+        if all([header in headers.keys() for header in ["X-Forwarded-For", "Cf-Ray", "Cf-Connecting-Ip", "Cf-Ray"]]):
+            connecting_ip = headers["Cf-Connecting-Ip"]
+            forwarded_for = headers["X-Forwarded-For"]
+            print(connecting_ip, forwarded_for)
+            source = connecting_ip if connecting_ip != forwarded_for else forwarded_for
+            print(source)
+            remote_address = source if self._ip_regex.match(source) else remote_address
+            print(remote_address)
+
         req = IncomingRequest(self._port).from_components(
             host=remote_address,
             request_method=RequestMethod.from_str(method),
@@ -136,3 +147,7 @@ class Listener:
     @property
     def database_handler(self) -> DatabaseHandler:
         return self._database_handler
+
+    @property
+    def request_analyser(self) -> RequestAnalyser:
+        return self._request_analyser

@@ -37,13 +37,28 @@ pip install psycopg2 flask
 Linux:
 
 ```bash
-python3 -m flask_recon <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]
+python3 -m flask_recon <port> <host> [api]? [webapp]? [halt]? [ssl]?
 ```
 
 Windows:
 
 ```bash
-python -m flask_recon <port> [api|noapi] [webapp|nowebapp] [halt|nohalt] [ssl|nossl]
+python -m flask_recon <port> <host> [api]? [webapp]? [halt]? [ssl]?
+```
+
+- `<port>`: The port to listen on.
+- `<host>`: The host to listen on.
+- `[api]`: Optional. If specified, the API will be enabled.
+- `[webapp]`: Optional. If specified, the webapp will be enabled.
+- - if required, the html templates may be automatically downloaded
+- `[halt]`: Optional. If specified, the scanner halting feature will be enabled.
+- `[ssl]`: Optional. If specified, the webapp will be served over HTTPS.
+
+Examples:
+```bash
+python3 -m flask_recon 80 0.0.0.0 api webapp halt
+python3 -m flask_recon 443 0.0.0.0 ssl
+python3 -m flask_recon 80 0.0.0.0 webapp
 ```
 
 Please note that the specified port must be open and available for the webapp to listen on.

@@ -2,9 +2,9 @@ from os import mkdir
 from os.path import isfile
 from typing import Optional
 
-from requests import get
+from requests import get, post
 
-from flask_recon.structures import IncomingRequest, RequestType, AttackType
+from flask_recon.structures import IncomingRequest, RequestType, AttackType, RequestMethod
 
 COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
 REMOTE_TEMPLATE_URL_BASE = "https://raw.githubusercontent.com/ottodanp/flask-recon/master/"
@@ -33,13 +33,13 @@ class RequestAnalyser:
         self._openai_key = openai_key
         self._generation_temperature = generation_temperature
 
-    def analyse_request(self, request: IncomingRequest) -> str:
+    def analyse_request(self, request: IncomingRequest) -> dict:
         user_message = self.user_message(request)
         response = self.send_openai_request(user_message)
-        return response["choices"][0]["message"]["content"]
+        return response
 
     def send_openai_request(self, message: str) -> dict:
-        response = get(
+        response = post(
             COMPLETIONS_URL, headers=self.openai_headers,
             json=self.generate_openai_request_body(message, self._generation_temperature, self.system_message)
         )
@@ -99,3 +99,22 @@ def download_templates():
 
         with open(template, "wb") as f:
             f.write(get(REMOTE_TEMPLATE_URL_BASE + template).content)
+
+
+if __name__ == '__main__':
+    analyser = RequestAnalyser(open("../token", "r").read())
+    r = analyser.analyse_request(
+        IncomingRequest(80).from_components(
+            host="141.98.10.29",
+            request_method=RequestMethod.GET,
+            request_headers={'Host': '167.172.53.140', 'Keep-Alive': '300', 'Connection': 'keep-alive',
+                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+                             'Accept-Language': 'en-US,en;q=0.5',
+                             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'},
+            request_uri="/cms/wp-includes/wlwmanifest.xml",
+            query_string=None,
+            request_body=None,
+            timestamp="",
+        )
+    )
+    print(r)

@@ -31,12 +31,18 @@ class DatabaseHandler(cursor):
 
     def get_actor_average_threat_level(self, actor_id: int) -> int:
         self.execute("SELECT threat_level FROM requests WHERE actor_id = %s", (actor_id,))
-        levels = [row[0] for row in self.fetchall()]
+        result = self.fetchall()
+        if not result:
+            return 0
+        levels = [row[0] for row in result]
         return sum(levels) // len(levels) if levels else 0
 
     def get_actor_id(self, remote_host: RemoteHost) -> int:
         self.execute("SELECT actor_id FROM actors WHERE host = %s", (remote_host.address,))
-        return self.fetchone()[0]
+        result = self.fetchone()
+        if not result:
+            return -1
+        return result[0]
 
     def address_is_authorised(self, remote_host: RemoteHost) -> bool:
         self.execute("SELECT address FROM authorized_addresses WHERE host = %s", (remote_host.address,))
@@ -72,6 +78,19 @@ class DatabaseHandler(cursor):
         self.execute("SELECT * FROM requests WHERE request_id = %s", (request_id,))
         row = self.fetchone()
         self.execute("SELECT host FROM actors WHERE actor_id = %s", (row[1],))
+        result = self.fetchone()
+        if not result:
+            return IncomingRequest(row[8]).from_components(
+                host="Unknown",
+                timestamp=row[0],
+                request_method="GET",
+                request_body={},
+                request_headers={},
+                query_string="",
+                request_uri="",
+                request_id=-1,
+                threat_level=0,
+            )
         host = RemoteHost(self.fetchone()[0])
         return IncomingRequest(row[6]).from_components(
             host=host.address,
@@ -207,8 +226,7 @@ class DatabaseHandler(cursor):
         self.execute("SELECT body FROM connect_targets WHERE url = %s", (url,))
         return self.fetchone()[0]
 
-    def search(self,
-               actor: Optional[str] = None,
+    def search(self, actor_id: Optional[int] = None,
                uri: Optional[str] = None,
                method: Optional[str] = None,
                threat_level: Optional[int] = None,
@@ -224,10 +242,9 @@ class DatabaseHandler(cursor):
                  "FROM requests")
         conditions = []
         variables = []
-        if actor:
-            conditions.append(
-                f"actor_id IN (SELECT actor_id FROM actors WHERE host {'LIKE' if not case_sensitive else 'ILIKE'} %s)")
-            variables.append(actor)
+        if actor_id:
+            conditions.append("actor_id = %s")
+            variables.append(actor_id)
         if uri:
             conditions.append(f"path {'LIKE' if case_sensitive else 'ILIKE'} %s")
             variables.append(f"%{uri}%")
@@ -294,7 +311,10 @@ class DatabaseHandler(cursor):
         self.execute("SELECT actor_id, host FROM actors ORDER BY actor_id DESC LIMIT 1")
         actor_id, host = self.fetchone()
         self.execute("SELECT timestamp FROM requests WHERE actor_id = %s ORDER BY timestamp DESC LIMIT 1", (actor_id,))
-        return host, self.fetchone()[0]
+        result = self.fetchone()
+        if not result:
+            return host, "Unknown"
+        return result[0], host
 
     def get_last_endpoint(self) -> Tuple[Any, ...]:
         self.execute("""
@@ -341,10 +361,10 @@ class DatabaseHandler(cursor):
         return self.fetchone()[0]
 
     def validate_and_delete_registration_key(self, key: str) -> bool:
-        self.execute("SELECT EXISTS(SELECT key FROM registration_keys WHERE key = %s)", (key,))
+        self.execute("SELECT EXISTS(SELECT key FROM admin_keys WHERE key = %s)", (key,))
         if not self.fetchone()[0]:
             return False
-        self.execute("DELETE FROM registration_keys WHERE key = %s", (key,))
+        self.execute("DELETE FROM admin_keys WHERE key = %s", (key,))
         self._conn.commit()
         return True
 
@@ -365,3 +385,17 @@ class DatabaseHandler(cursor):
     @staticmethod
     def hash_password(password: str) -> str:
         return sha256(password.encode()).hexdigest()
+
+
+def db_error_handler(default_response: Tuple[str, int]):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except (TypeError, ) as e:
+                print(e)
+                return default_response
+
+        return wrapper
+
+    return decorator

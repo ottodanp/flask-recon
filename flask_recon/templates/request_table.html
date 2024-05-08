@@ -32,7 +32,6 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th scope="col">#</th>
                         <th scope="col">Header</th>
                         <th scope="col">Value</th>
                     </tr>
@@ -40,7 +39,6 @@
                     <tbody>
                     {% for key, value in request.headers.items() %}
                     <tr>
-                        <th scope="row">{{ loop.index }}</th>
                         <td>{{ key }}</td>
                         <td>{{ value }}</td>
                     </tr>
@@ -52,7 +50,6 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th scope="col">#</th>
                         <th scope="col">Parameter</th>
                         <th scope="col">Value</th>
                     </tr>
@@ -60,7 +57,6 @@
                     <tbody>
                     {% for key, value in request.body.items() %}
                     <tr>
-                        <th scope="row">{{ loop.index }}</th>
                         <td>{{ key }}</td>
                         <td>{{ value }}</td>
                     </tr>
@@ -94,14 +90,14 @@
                 </table>
             </td>
             <td>
-                <a href="/requests_by_host?host={{ request.host.address }}">
+                <a href="/flask-recon/requests-by-host?host={{ request.host.address }}">
                     <button type="button" class="btn btn-primary">
                         Actor Requests
                     </button>
                 </a>
             </td>
             <td>
-                <a href="/csv_dump?request_id={{ request.request_id }}">
+                <a href="/flask-recon/csv-request-dump?request_id={{ request.request_id }}">
                     <button type="button" class="btn btn-primary">
                         CSV Dump
                     </button>

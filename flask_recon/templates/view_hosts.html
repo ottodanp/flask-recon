@@ -18,6 +18,7 @@
             <th scope="col">Total Requests</th>
             <th scope="col">Threat Level</th>
             <th scope="col">View Requests</th>
+            <th scope="col">Dump Requests</th>
             <th scope="col">View IP Details</th>
             <th scope="col">Arin Lookup</th>
             <th scope="col">Spamhaus Check</th>
@@ -33,10 +34,14 @@
             <td>{{ host.3 }}</td>
             <td>{{ host.4 }}</td>
             <td>
-                <a href="/requests_by_host?host={{ host.0 }}">
+                <a href="/flask-recon/requests-by-host?host={{ host.0 }}">
                     <button type="button" class="btn btn-primary" data-toggle="modal">View Requests</button>
                 </a>
             </td>
+            <td>
+                <a href="/flask-recon/csv-actor-dump?host={{ host.0 }}">
+                    <button type="button" class="btn btn-primary">Dump Requests</button>
+                </a>
             <td>
                 <a href="https://whatismyipaddress.com/ip/{{ host.0 }}" target="_blank">
                     <button type="button" class="btn btn-primary">IP Details</button>

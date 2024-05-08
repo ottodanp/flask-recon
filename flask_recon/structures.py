@@ -1,4 +1,5 @@
 from enum import Enum
+from json import dumps
 from typing import Dict, Optional, List, Tuple
 
 import werkzeug.exceptions
@@ -68,6 +69,7 @@ class RemoteHost:
 
 
 class IncomingRequest:
+    _csv_sep: str = ","
     _host: RemoteHost
     _local_port: int
     _request_method: RequestMethod
@@ -183,13 +185,21 @@ class IncomingRequest:
 
     @property
     def csv_headers(self) -> str:
-        return "origin_host,method,uri,query_string,headers,body,timestamp"
+        s = self._csv_sep
+        return f"origin_host{s}method{s}url{s}headers{s}body{s}timestamp"
 
     @property
     def as_csv(self) -> str:
         qs_sep = "?" if self.query_string else ""
-        return (f"{self.host.address},{self.method},{self.uri}{qs_sep}{self.query_string},{self.headers},{self.body},"
-                f"{self.timestamp}")
+        s = self._csv_sep
+        return (f"{self.host.address}{s}{self.method}{s}{self.escape_csv(self.uri)}{qs_sep}"
+                f"{self.escape_csv(self.query_string)}{s}{self.escape_csv(dumps(self.headers))}{s}"
+                f"{self.escape_csv(dumps(self.body))}{s}{self.timestamp}")
+
+    @staticmethod
+    def escape_csv(value: str) -> str:
+        value = value.replace('"', '""')
+        return f'"{value}"' if "," in value else value
 
     @property
     def host(self) -> RemoteHost:

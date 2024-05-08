@@ -1,14 +1,15 @@
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Callable
 
-from flask import Flask, request, render_template, Response, redirect
+from flask import request, render_template, Response
 
 from flask_recon import Listener, RemoteHost, IncomingRequest
-from os import system
-app = Flask(__name__)
+from flask_recon.database import db_error_handler
+
+BASE_DIRECTORY = "flask-recon"
 
 
-class ApiEndpoints:
+class Api:
     _listener: Listener
 
     def __init__(self, listener: Listener):
@@ -31,6 +32,16 @@ class ApiEndpoints:
     def requests_by_host(self):
         host = request.args.get("host")
         return self._listener.database_handler.get_requests(host=RemoteHost(host))
+
+    @property
+    def routes(self) -> Dict[str, Callable]:
+        return {
+            f"/{BASE_DIRECTORY}/api/view-endpoints": self.all_endpoints,
+            f"/{BASE_DIRECTORY}/api/all-hosts": self.all_hosts,
+            f"/{BASE_DIRECTORY}/api/hosts-by-endpoint": self.hosts_by_endpoint,
+            f"/{BASE_DIRECTORY}/api/requests-by-endpoint": self.requests_by_endpoint,
+            f"/{BASE_DIRECTORY}/api/requests-by-host": self.requests_by_host,
+        }
 
 
 class WebApp:
@@ -77,7 +88,6 @@ class WebApp:
     def html_search(self):
         if any([
             (host := request.args.get("input_host")),
-            (actor := request.args.get("input_actor")),
             (method := request.args.get("input_method")),
             (uri := request.args.get("input_uri")),
             (headers := request.args.get("input_headers")),
@@ -86,7 +96,7 @@ class WebApp:
         ]):
             case_sensitive = request.args.get("case_sensitive") == "on"
             all_must_match = request.args.get("all_must_match") == "on"
-            results = self._listener.database_handler.search(actor=actor, method=method, all_must_match=all_must_match,
+            results = self._listener.database_handler.search(method=method, all_must_match=all_must_match,
                                                              uri=uri, host=host, query_string=query_string, body=body,
                                                              case_sensitive=case_sensitive, headers=headers)
             return render_template("search.html", requests=results)
@@ -105,8 +115,10 @@ class WebApp:
             return "Invalid request_id parameter", 400
 
     def home(self):
-        print(system("pwd"))
-        last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
+        try:
+            last_actor, last_actor_time = self._listener.database_handler.get_last_actor()
+        except TypeError:
+            last_actor, last_actor_time = None, None
         last_method, last_endpoint, last_threat_level = self._listener.database_handler.get_last_endpoint()
         time_between_requests = self._listener.database_handler.get_average_time_between_requests()
         last_request_time = self._listener.database_handler.get_last_request_time()
@@ -164,6 +176,42 @@ class WebApp:
         response.set_cookie("X-Session-Token", session_token)
         return response
 
+    def analyse_request(self):
+        session_cookie = request.cookies.get("X-Session-Token")
+        if not session_cookie or not self._listener.database_handler.validate_session_token(session_cookie):
+            return "Unauthorized", 401
+
+        request_id = request.args.get("request_id")
+        if request_id is None:
+            return "Missing request_id parameter", 400
+
+        try:
+            req = self._listener.database_handler.get_request(int(request_id))
+            if req is None:
+                return "Request not found", 404
+            return self._listener.request_analyser.analyse_request(req)
+        except ValueError:
+            return "Invalid request_id parameter", 400
+
+    def csv_actor_dump(self):
+        host = request.args.get("host")
+        if host is None:
+            return "Missing host parameter", 400
+        try:
+            actor_id = self._listener.database_handler.get_actor_id(RemoteHost(host))
+            actor_requests = self._listener.database_handler.search(actor_id=int(actor_id))
+            if not actor_requests:
+                return "Actor not found", 404
+            return Response(
+                f"{actor_requests[0].csv_headers}\n" + "\n".join([req.as_csv for req in actor_requests]),
+                headers={
+                    "Content-Type": "text/csv",
+                    "Content-Disposition": f"attachment; filename=actor-{actor_id}.csv"
+                }
+            )
+        except ValueError:
+            return "Invalid actor_id parameter", 400
+
     @staticmethod
     def parse_time(t: str) -> str:
         h, m, s = t.split(":")
@@ -178,26 +226,29 @@ class WebApp:
         for req in reqs:
             req.determine_threat_level()
 
+    @property
+    def routes(self) -> Dict[str, Callable]:
+        return {
+            f"/{BASE_DIRECTORY}": self.home,
+            f"/{BASE_DIRECTORY}/view-endpoints": self.view_endpoints,
+            f"/{BASE_DIRECTORY}/view-hosts": self.view_hosts,
+            f"/{BASE_DIRECTORY}/hosts-by-endpoint": self.html_hosts_by_endpoint,
+            f"/{BASE_DIRECTORY}/requests-by-endpoint": self.html_requests_by_endpoint,
+            f"/{BASE_DIRECTORY}/requests-by-host": self.html_requests_by_host,
+            f"/{BASE_DIRECTORY}/search": self.html_search,
+            f"/{BASE_DIRECTORY}/csv-request-dump": self.csv_request_dump,
+            f"/{BASE_DIRECTORY}/csv-actor-dump": self.csv_actor_dump,
+            f"/{BASE_DIRECTORY}/register": self.register,
+            f"/{BASE_DIRECTORY}/login": self.login,
+            f"/{BASE_DIRECTORY}/analyse-request": self.analyse_request,
+            "/favicon.ico": self.favicon,
+        }
+
 
 def add_routes(listener: Listener, run_api: bool = True, run_webapp: bool = True):
-    if run_api:
-        api_endpoints = ApiEndpoints(listener)
-        listener.route("/api/view_endpoints")(api_endpoints.all_endpoints)
-        listener.route("/api/all_hosts")(api_endpoints.all_hosts)
-        listener.route("/api/hosts_by_endpoint")(api_endpoints.hosts_by_endpoint)
-        listener.route("/api/requests_by_endpoint")(api_endpoints.requests_by_endpoint)
-        listener.route("/api/requests_by_host")(api_endpoints.requests_by_host)
-
-    if run_webapp:
-        webapp = WebApp(listener)
-        listener.route("/view_endpoints")(webapp.view_endpoints)
-        listener.route("/view_hosts")(webapp.view_hosts)
-        listener.route("/hosts_by_endpoint")(webapp.html_hosts_by_endpoint)
-        listener.route("/requests_by_endpoint")(webapp.html_requests_by_endpoint)
-        listener.route("/requests_by_host")(webapp.html_requests_by_host)
-        listener.route("/home")(webapp.home)
-        listener.route("/search")(webapp.html_search)
-        listener.route("/favicon.ico")(webapp.favicon)
-        listener.route("/csv_dump")(webapp.csv_request_dump)
-        listener.route("/register")(webapp.register)
-        listener.route("/login", methods=["GET", "POST"])(webapp.login)
+    routes = {
+        **(Api(listener).routes if run_api else {}),
+        **(WebApp(listener).routes if run_webapp else {})
+    }
+    for endpoint, func in routes.items():
+        listener.route(endpoint)(func)
